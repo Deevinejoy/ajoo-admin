@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 export default function Topbar() {
     const [searchQuery, setSearchQuery] = useState("");
   return (
   
    
-      <div className="flex justify-between items-center mb-6 bg-white p-5">
+      <div className="flex justify-between items-center  bg-white p-5">
         <div className="pl-5">
           <h1 className="text-2xl font-bold ">Dashboard</h1>
           <p className="text-[16px] text-black">Overview of registered associations and their performance</p>
@@ -25,10 +26,10 @@ export default function Topbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="relative">
+          <Link to="/notifications" className="relative">
             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            🔔
-          </button>
+            <img src="notif.svg" alt="notification"/>
+          </Link>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gray-300 rounded-full text-center">JD</div>
             <span>John Doe</span>
