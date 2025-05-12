@@ -2,12 +2,12 @@ import React from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const MemberProfile: React.FC = () => {
+const AssMemberProfile: React.FC = () => {
     const { memberId } = useParams();
     const navigate = useNavigate();
 
     const handleBack = () => {
-        navigate('/members');
+        navigate(-1);
     };
 
     return (
@@ -75,4 +75,4 @@ const MemberProfile: React.FC = () => {
     );
 };
 
-export default MemberProfile; 
+export default AssMemberProfile; 

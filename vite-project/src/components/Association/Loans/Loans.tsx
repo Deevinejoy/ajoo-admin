@@ -15,7 +15,7 @@ interface Loan {
 
 type TabType = 'Members Loan Breakdown' | 'Loan Application Reviews';
 
-const Loans: React.FC = () => {
+const AssLoans: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('Members Loan Breakdown');
     const [searchQuery, setSearchQuery] = useState('');
     const [isAddLoanOpen, setIsAddLoanOpen] = useState(false);
@@ -51,7 +51,11 @@ const Loans: React.FC = () => {
     ];
 
     const handleViewLoan = (loanId: string) => {
-        navigate(`/loans/${loanId}`);
+        navigate(`/association/loans/${loanId}`);
+    };
+
+    const handleViewApplication = (applicationId: string) => {
+        navigate(`/association/loan-applications/${applicationId}`);
     };
 
     return (
@@ -112,7 +116,7 @@ const Loans: React.FC = () => {
                 <LoanApplicationReviews
                     pending={pendingApplications}
                     recent={recentApplications}
-                    onView={handleViewLoan}
+                    onView={handleViewApplication}
                 />
             ) : (
                 <div className="bg-white rounded-lg shadow">
@@ -192,4 +196,4 @@ const Loans: React.FC = () => {
     );
 };
 
-export default Loans; 
+export default AssLoans; 

@@ -15,7 +15,8 @@ const Sidebar = () => {
 
   const menuItems = [
     { title: 'Dashboard', icon: <img src='/dashboard1.svg' className="menu-icon"/>, path: '/dashboard' },
-    { title: 'Association', icon: <img src='/briefcase1.svg' className="menu-icon"/>, path: '/Associations' },
+    { title: 'Associations', icon: <img src='/briefcase1.svg' className="menu-icon"/>, path: '/associations' },
+   
     { title: 'Members', icon: <img src='/member.svg' className="menu-icon"/>, path: '/members' },
     { title: 'Loans', icon: <img src='/loans.svg' className="menu-icon"/>, path: '/loans' },
     { title: 'Attendance', icon: <img src='/notification.svg' className="menu-icon"/>, path: '/attendance' },

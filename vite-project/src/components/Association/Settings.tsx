@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const TABS = [
-  { label: 'Cooperative', icon: <img src="/briefcase1.svg" alt="cooperative" className="w-5 h-5" /> },
+  { label: 'Cooperative', icon: <img src="/building.svg" alt="cooperative" className="w-5 h-5" /> },
   { label: 'Permission', icon: <img src="/Group.svg" alt="permission" className="w-5 h-5" /> },
   { label: 'Loans', icon: <img src="/loans.svg" alt="loans" className="w-5 h-5" /> },
   { label: 'Notification', icon: <img src="/notif.svg" alt="notification" className="w-5 h-5" /> },

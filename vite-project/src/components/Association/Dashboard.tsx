@@ -1,8 +1,8 @@
 
-import Linechart from './Linechart';
-import Piechart from './Piechart';
+import Linechart from '../Linechart';
+import Piechart from '../Piechart';
 
-export default function Dashboard() {
+export default function AssDashboard() {
     const pieChartData = [
         { name: 'Active Loans', value: 65 },
         { name: 'Completed', value: 30 },

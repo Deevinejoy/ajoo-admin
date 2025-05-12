@@ -46,7 +46,7 @@ type LoanPerformanceRow = {
 
 type TableRow = AllMembersRow | LoanRequestRow | FinancialActivityRow | LoanPerformanceRow;
 
-const Members: React.FC = () => {
+const AssMembers: React.FC = () => {
     const [activeTab, setActiveTab] = useState('Financial Activity');
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -143,7 +143,7 @@ const Members: React.FC = () => {
     };
 
     const handleViewMember = (memberId: string) => {
-        navigate(`/members/${memberId}`);
+        navigate(`/association/members/${memberId}`);
     };
 
     const renderTableRow = (row: TableRow) => {
@@ -374,4 +374,4 @@ const Members: React.FC = () => {
     );
 };
 
-export default Members;
+export default AssMembers;

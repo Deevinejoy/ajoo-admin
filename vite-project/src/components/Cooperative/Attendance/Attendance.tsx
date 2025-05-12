@@ -140,9 +140,9 @@ const Attendance: React.FC = () => {
           {/* Footer Buttons */}
           <div className="flex gap-4 mt-6">
             <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg">Quick report</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg">View monthly summary</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg">View attendance trends</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg">Members report</button>
+            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate('/attendance/monthly-summary')}>View monthly summary</button>
+            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate('/attendance/trends')}>View attendance trends</button>
+            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate('/attendance/member-report')}>Members report</button>
             <button className="bg-[#3161FF] text-white px-4 py-2 rounded-lg">Export all data</button>
           </div>
           {/* Pagination */}
