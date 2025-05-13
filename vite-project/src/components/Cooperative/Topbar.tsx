@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const notificationList = [
   {
@@ -22,12 +22,12 @@ const notificationList = [
 export default function Topbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotif, setShowNotif] = useState(false);
-  const notifRef = useRef(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (notifRef.current && !notifRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent): void {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setShowNotif(false);
       }
     }

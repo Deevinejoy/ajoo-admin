@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const MemberProfile: React.FC = () => {
-    const { memberId } = useParams();
+    const { memberId } = useParams<{ memberId: string }>();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('Loans');
-    const [currentPage, setCurrentPage] = useState(1);
+    const [activeTab, setActiveTab] = useState<'transactions' | 'loans'>('transactions');
 
     // Mock member data
     const memberData = {
@@ -99,14 +98,14 @@ const MemberProfile: React.FC = () => {
                         <div className="bg-white rounded-t-lg overflow-hidden">
                             <div className="flex">
                                 <button 
-                                    className={`py-4 px-12 ${activeTab === 'Loans' ? 'bg-white' : 'bg-gray-100'}`}
-                                    onClick={() => setActiveTab('Loans')}
+                                    className={`py-4 px-12 ${activeTab === 'loans' ? 'bg-white' : 'bg-gray-100'}`}
+                                    onClick={() => setActiveTab('loans')}
                                 >
                                     Loans
                                 </button>
                                 <button 
-                                    className={`py-4 px-12 ${activeTab === 'Transactions' ? 'bg-white' : 'bg-gray-100'}`}
-                                    onClick={() => setActiveTab('Transactions')}
+                                    className={`py-4 px-12 ${activeTab === 'transactions' ? 'bg-white' : 'bg-gray-100'}`}
+                                    onClick={() => setActiveTab('transactions')}
                                 >
                                     Transactions
                                 </button>
@@ -115,7 +114,7 @@ const MemberProfile: React.FC = () => {
 
                         {/* Tab content */}
                         <div className="bg-white rounded-b-lg shadow-sm p-6">
-                            {activeTab === 'Loans' && (
+                            {activeTab === 'loans' && (
                                 <>
                                     <h3 className="text-lg font-medium mb-4">Loan History</h3>
                                     <table className="min-w-full">
@@ -143,7 +142,7 @@ const MemberProfile: React.FC = () => {
                                 </>
                             )}
 
-                            {activeTab === 'Transactions' && (
+                            {activeTab === 'transactions' && (
                                 <>
                                     <h3 className="text-lg font-medium mb-4">Transaction History</h3>
                                     <table className="min-w-full">

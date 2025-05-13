@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function Dashboard() {
     // Mock data for loan repayment trend
     const loanRepaymentData = [

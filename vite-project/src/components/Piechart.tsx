@@ -35,7 +35,7 @@ export default function Piechart({ title, subtitle, data }: PiechartProps) {
             dataKey="value"
             nameKey="name"
           >
-            {data.map((entry, index) => (
+            {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>

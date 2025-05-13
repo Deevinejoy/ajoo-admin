@@ -1,5 +1,4 @@
 import Layout from './components/Cooperative/Layout';
-import Topbar from './components/Association/Topbar';
 import Dashboard from './components/Cooperative/Dashboard';
 import Members from './components/Cooperative/Members/Members';
 import MemberProfile from './components/Cooperative/Members/MemberProfile';
@@ -39,11 +38,8 @@ import AssTransactionDetails from './components/Association/Transactions/Transac
 import AssLoans from './components/Association/Loans/Loans';
 import AssLoanApplicationDetails from './components/Association/Loans/LoanApplicationDetails';
 import AssLoanDetails from './components/Association/Loans/LoanDetails';
-import AssLoanApplicationReviews from './components/Association/Loans/LoanApplicationReviews';
 import AssReports from './components/Association/Reports';
 import AssSettings from './components/Association/Settings';
-
-// import { Bar, Line } from '@shadcn/ui'; // Import Bar and Line chart components
 
 const App: React.FC = () => {
   return (

@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import Linechart from '../../Linechart';
-import Piechart from '../../Piechart';
+import { Link } from 'react-router-dom';
 
 interface ActivityItem {
   id: number;
@@ -20,18 +18,23 @@ interface Member {
 }
 
 export default function AssociationDetails() {
-  const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState('Members');
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Mock data for the selected association
+  // Mock association data
   const association = {
-    id: parseInt(id || '1'),
+    id: 1,
     name: 'Association X',
-    description: 'Association details and performance',
-    totalMembers: 120,
-    activeLoans: 45,
-    defaultRate: '3%'
+    category: 'Class C (Large)',
+    location: 'Lagos, Nigeria',
+    established: 'January 15, 2022',
+    members: 1200,
+    loans: 56,
+    contributions: '₦12,500,000',
+    defaultRate: '3%',
+    interestRate: '5%',
+    status: 'active',
+    description: 'A cooperative association for community development'
   };
   
   // Mock data for activity log
@@ -78,15 +81,7 @@ export default function AssociationDetails() {
     { name: 'Jul', value: 90 },
   ];
   
-  const pieChartData = [
-    { name: 'Active Loans', value: 65 },
-    { name: 'Completed', value: 30 },
-    { name: 'Overdue', value: 15 },
-  ];
-  
   // Pagination
-  const totalPages = 20;
-  
   const renderPagination = () => {
     return (
       <div className="flex items-center justify-center gap-2 text-sm">
@@ -143,7 +138,7 @@ export default function AssociationDetails() {
             </div>
             <div>
               <p className="text-gray-500">Total Members</p>
-              <h2 className="text-4xl font-semibold">{association.totalMembers}</h2>
+              <h2 className="text-4xl font-semibold">{association.members}</h2>
             </div>
           </div>
         </div>
@@ -157,7 +152,7 @@ export default function AssociationDetails() {
             </div>
             <div>
               <p className="text-gray-500">Active Loans</p>
-              <h2 className="text-4xl font-semibold">{association.activeLoans}</h2>
+              <h2 className="text-4xl font-semibold">{association.loans}</h2>
             </div>
           </div>
         </div>
