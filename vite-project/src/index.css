@@ -1,1 +1,21 @@
 @import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;700;900&display=swap');
+
+@layer base {
+  html {
+    font-family: 'Lato', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-[#E7E7E7];
+  }
+
+  * {
+    @apply box-border;
+  }
+}
+
+/* Apply Lato font to all text elements */
+h1, h2, h3, h4, h5, h6, p, span, a, button, input, textarea, select, option {
+  font-family: 'Lato', sans-serif;
+}

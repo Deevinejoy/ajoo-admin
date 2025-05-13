@@ -1,213 +1,123 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const meetingData = [
-  { id: 1, date: 'Jan 10,2023', name: 'Monthly General Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 2, date: 'Jan 10,2023', name: 'Committee  Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 3, date: 'Jan 10,2023', name: 'Board Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 4, date: 'Jan 10,2023', name: 'Monthly General Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-];
+interface Association {
+  id: number;
+  name: string;
+  members: number;
+  loans: number;
+  created: string;
+  status: string;
+  avgAttendance: string;
+}
 
-const attendanceData = [
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-];
-
-const Attendance: React.FC = () => {
-  const [tab, setTab] = useState<'Meeting Tracker' | 'Attendance Reports'>('Meeting Tracker');
+export default function Attendance() {
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Mock data for associations with unique names
+  const associations: Association[] = [
+    { id: 1, name: 'Association X', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
+    { id: 2, name: 'Association Y', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
+    { id: 3, name: 'Association Z', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
+    { id: 4, name: 'Association A', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
+    { id: 5, name: 'Association B', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
+  ];
+  
+  // Handler to navigate to association details with the specific ID
+  const handleViewAssociation = (id: number) => {
+    navigate(`/attendance/${id}`);
+  };
+
+  // Filter associations based on search term
+  const filteredAssociations = searchTerm 
+    ? associations.filter(association => 
+        association.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    : associations;
 
   return (
-    <div className="p-6 pt-1">
-      <div className="flex justify-between items-center mb-5">
-        <div>
-          <h1 className="text-2xl font-medium">Attendance</h1>
-          <p className="text-[#666666]">Manage all cooperative loans</p>
+    <div className="p-8 bg-[#F5F7FA] min-h-screen">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold">Associations</h1>
+        <p className="text-gray-500 text-sm">Manage all associations attendance</p>
+      </div>
+      
+      <div className="flex justify-between mb-6">
+        <div className="relative w-1/2">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder="Search associations..."
+            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        <button className="bg-[#3161FF] text-white px-6 py-2 rounded-lg flex items-center gap-x-2 font-medium">
-          + Add Meeting
+        <button className="border border-gray-300 px-4 py-2 rounded-md flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+          </svg>
+          Filter
         </button>
       </div>
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-6 mb-6">
-      <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h3 className="text-[#373737]">Total Meetings</h3>
-                    <p className="text-2xl font-semibold">24</p>
-                </div>
-                <div className="self-center">
-                    <img src="/briefcase.svg" alt="pic" />
-                </div>
-            </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h3 className="text-[#373737]">Avg. Attendance</h3>
-                    <p className="text-2xl font-semibold">78%</p>
-                </div>
-                <div className="self-center">
-                    <img src="/people.svg" alt="pic" />
-                </div>
-            </div>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h3 className="text-[#373737]">Next Meeting</h3>
-                    <p className="text-xl font-semibold">April 12</p>
-                </div>
-                <div className="self-center">
-                    <img src="/loans1.svg" alt="pic" />
-                </div>
-            </div>
-        </div>
-     
-      </div>
-      {/* Tabs */}
-      <div className="flex gap-8 border-b border-[#E5E5E5] mb-4">
-        <button
-          className={`pb-2 px-1 font-medium ${tab === 'Meeting Tracker' ? 'border-b-2 border-[#3161FF] text-[#3161FF]' : 'text-gray-500'}`}
-          onClick={() => setTab('Meeting Tracker')}
-        >
-          Meeting Tracker
-        </button>
-        <button
-          className={`pb-2 px-1 font-medium ${tab === 'Attendance Reports' ? 'border-b-2 border-[#3161FF] text-[#3161FF]' : 'text-gray-500'}`}
-          onClick={() => setTab('Attendance Reports')}
-        >
-          Attendance Reports
-        </button>
-      </div>
-      {/* Search and Filters */}
-      <div className="flex items-center gap-4 mb-4">
-        <input
-          type="text"
-          placeholder={`Search by members name or ID...`}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3161FF]"
-        />
-        <button className="flex items-center gap-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
-         <img src="/filter.svg" alt="pic" width={18} height={18}/>
-         <p className='w-full text-nowrap'>Last 30days</p>
-        </button>
-        <button className="flex items-center gap-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
-         <img src="/filter.svg" alt="pic" width={18} height={18}/>
-         <p className='w-full text-nowrap'>All members</p>
-        </button>
-     
-      </div>
-      {/* Tab Content */}
-      {tab === 'Meeting Tracker' ? (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Meetings</h2>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Date</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Meeting Name</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Type</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Attendees</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Attendance %</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Actions</th>
+      
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <table className="min-w-full">
+          <thead>
+            <tr className="text-left text-gray-500 border-b border-gray-200">
+              <th className="px-6 py-4 font-normal">Name</th>
+              <th className="px-6 py-4 font-normal">Members</th>
+              <th className="px-6 py-4 font-normal">Loans</th>
+              <th className="px-6 py-4 font-normal">Created</th>
+              <th className="px-6 py-4 font-normal">Status</th>
+              <th className="px-6 py-4 font-normal">Avg. Attendance</th>
+              <th className="px-6 py-4 font-normal">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredAssociations.map(association => (
+              <tr key={association.id} className="border-b border-gray-100">
+                <td className="px-6 py-4">{association.name}</td>
+                <td className="px-6 py-4">{association.members}</td>
+                <td className="px-6 py-4">{association.loans}</td>
+                <td className="px-6 py-4">{association.created}</td>
+                <td className="px-6 py-4">
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                    {association.status}
+                  </span>
+                </td>
+                <td className="px-6 py-4">{association.avgAttendance}</td>
+                <td className="px-6 py-4">
+                  <button 
+                    className="bg-gray-100 text-gray-700 px-4 py-1 rounded-md flex items-center gap-1"
+                    onClick={() => handleViewAssociation(association.id)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    View
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {meetingData.map((m, i) => (
-                <tr key={i} className="border-b border-gray-200">
-                  <td className="py-4 px-6 text-[#373737]">{m.date}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.name}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.type}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.attendees}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.percent}</td>
-                  <td className="py-4 px-6 flex gap-2">
-                    <button
-                      className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg"
-                      onClick={() => navigate(`/attendance/meeting/${m.id}`)}
-                    >
-                      Details
-                    </button>
-                    <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg">Edit</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {/* Footer Buttons */}
-          <div className="flex gap-4 mt-6">
-            <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg">Quick report</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate('/attendance/monthly-summary')}>View monthly summary</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate('/attendance/trends')}>View attendance trends</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate('/attendance/member-report')}>Members report</button>
-            <button className="bg-[#3161FF] text-white px-4 py-2 rounded-lg">Export all data</button>
-          </div>
-          {/* Pagination */}
-          <div className="flex items-center justify-between p-4">
-            <span className="text-gray-600">Previous page</span>
-            <div className="flex items-center gap-2">
-              {[1, 2, 3, '...', 20].map((page, index) => (
-                <button
-                  key={index}
-                  className={`px-3 py-1 rounded ${page === 1 ? 'bg-[#3161FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-            <span className="text-gray-600">Next page</span>
-          </div>
+            ))}
+          </tbody>
+        </table>
+        
+        <div className="flex justify-center py-4 gap-1">
+          <span className="text-gray-500 mx-1 cursor-pointer">Previous page</span>
+          <span className="text-blue-600 font-medium mx-1 cursor-pointer">1</span>
+          <span className="text-gray-500 mx-1 cursor-pointer">2</span>
+          <span className="text-gray-500 mx-1 cursor-pointer">3</span>
+          <span className="text-gray-500 mx-1 cursor-pointer">. . .</span>
+          <span className="text-gray-500 mx-1 cursor-pointer">20</span>
+          <span className="text-gray-500 mx-1 cursor-pointer">Next page</span>
         </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Members Attendance</h2>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Member Name</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Meetings attended</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Attendance Rate</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Last Attended</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceData.map((m, i) => (
-                <tr key={i} className="border-b border-gray-200">
-                  <td className="py-4 px-6 text-[#373737]">{m.name}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.attended}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.rate}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.last}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {/* Footer Buttons */}
-          <div className="flex gap-4 mt-6">
-            <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg">Quick report</button>
-            <button className="bg-[#3161FF] text-white px-4 py-2 rounded-lg ml-auto">+ Export</button>
-          </div>
-          {/* Pagination */}
-          <div className="flex items-center justify-between p-4">
-            <span className="text-gray-600">Previous page</span>
-            <div className="flex items-center gap-2">
-              {[1, 2, 3, '...', 20].map((page, index) => (
-                <button
-                  key={index}
-                  className={`px-3 py-1 rounded ${page === 1 ? 'bg-[#3161FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-            <span className="text-gray-600">Next page</span>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
-};
-
-export default Attendance;
+}
