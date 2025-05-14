@@ -9,12 +9,12 @@ const meetingData = [
 ];
 
 const attendanceData = [
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
+  { id: 'MM3452', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
+  { id: 'MM3453', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
+  { id: 'MM3454', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
+  { id: 'MM3455', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
+  { id: 'MM3456', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
+  { id: 'MM3457', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
 ];
 
 const AssAttendance: React.FC = () => {
@@ -174,6 +174,7 @@ const AssAttendance: React.FC = () => {
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Meetings attended</th>
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Attendance Rate</th>
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Last Attended</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -183,6 +184,16 @@ const AssAttendance: React.FC = () => {
                     <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attended}</td>
                     <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.rate}</td>
                     <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.last}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6">
+                      
+                      <button 
+                        className="flex items-center gap-1 md:gap-x-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200 text-xs md:text-sm"
+                        onClick={() => navigate(`/association/attendance/member-report/${m.id}`)}
+                      >
+                        <img src="/view.svg" alt="view" width={16} height={16} className="md:w-[18px] md:h-[18px]" />
+                        <span className="font-medium">View</span>
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

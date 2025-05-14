@@ -67,6 +67,13 @@ const AssociationLayout: React.FC = () => {
   
   return (
     <div className="flex flex-1 w-full bg-[#E7E7E7] min-h-screen overflow-hidden">
+      {/* Mobile backdrop overlay */}
+      {isMobile && sidebarVisible && (
+        <div 
+          className="fixed inset-0 bg-white/70 backdrop-blur-sm z-10"
+          onClick={toggleSidebar}
+        />
+      )}
       <SidebarWithProps visible={sidebarVisible} />
       <div className={`flex-1 flex flex-col w-full transition-all duration-300 ${sidebarVisible ? 'md:ml-72' : 'md:ml-20'}`}>
         <TopbarWithProps toggleSidebar={toggleSidebar} sidebarVisible={sidebarVisible} />

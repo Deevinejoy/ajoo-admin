@@ -20,7 +20,7 @@ const meetingsData = [
   {date: 'Jun 10, 2023', name: 'Monthly General meeting', type: 'General', status: 'Absent'},
 ];
 
-const MemberAttendanceReport: React.FC = () => {
+const AssMemberAttendanceReport: React.FC = () => {
   const navigate = useNavigate();
   const { memberId } = useParams<{ memberId: string }>();
   const [member, setMember] = useState<typeof memberData[0] | null>(null);
@@ -166,4 +166,4 @@ const MemberAttendanceReport: React.FC = () => {
   );
 };
 
-export default MemberAttendanceReport; 
+export default AssMemberAttendanceReport; 

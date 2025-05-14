@@ -28,7 +28,7 @@ import AssociationLayout from './components/Association/AssociationLayout';
 import AssDashboard from './components/Association/Dashboard';
 import AssMembers from './components/Association/Members/Members';
 import AssMemberProfile from './components/Association/Members/MemberProfile';
-import AssMemberAttendanceReport from './components/Association/Members/MemberAttendanceReport';
+import AssMemberAttendanceReport from './components/Association/Attendance/MemberAttendanceReport';
 import AssMeetingDetails from './components/Association/Attendance/MeetingDetails';
 import AssAttendance from './components/Association/Attendance/Attendance';
 import AssMonthlySummary from './components/Association/Attendance/MonthlySummary';
@@ -80,7 +80,6 @@ const App: React.FC = () => {
         <Route path="/association/dashboard" element={<AssDashboard />} />
         
         {/* Association members routes */}
-        <Route path="/association/members/attendance/:memberId" element={<AssMemberAttendanceReport />} />
         <Route path="/association/members/:memberId" element={<AssMemberProfile />} />
         <Route path="/association/members" element={<AssMembers />} />
         
@@ -88,6 +87,7 @@ const App: React.FC = () => {
         <Route path="/association/attendance/meeting/:id" element={<AssMeetingDetails />} />
         <Route path="/association/attendance/monthly-summary" element={<AssMonthlySummary />} />
         <Route path="/association/attendance/trends" element={<AssAttendanceTrends />} />
+        <Route path="/association/attendance/member-report/:memberId" element={<AssMemberAttendanceReport />} />
         <Route path="/association/attendance" element={<AssAttendance />} />
         
         <Route path="/association/transactions" element={<AssTransaction />} />
