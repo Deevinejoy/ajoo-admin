@@ -36,7 +36,7 @@ export default function Asso() {
   };
   
   const renderPagination = () => {
-    let pages = [];
+    const pages = [];
     
     // Previous page button
     pages.push(
@@ -118,9 +118,7 @@ export default function Asso() {
       <div className="flex justify-between mb-6">
         <div className="relative w-1/2">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-            </svg>
+           <img src='/search.png' alt="search"/>
           </div>
           <input
             type="text"
@@ -131,14 +129,12 @@ export default function Asso() {
           />
         </div>
         <button className="border border-gray-300 px-4 py-2 rounded-md flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
-          </svg>
+        <img src='filter.svg ' alt="filter"/>
           Filter
         </button>
       </div>
       
-      <div className="bg-white rounded-lg shadow-sm">
+      <div className="bg-white rounded-lg shadow-md">
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr className="text-left text-gray-500">
@@ -166,15 +162,13 @@ export default function Asso() {
                 <td className="px-6 py-4">{association.defaultRate}</td>
                 <td className="px-6 py-4">
                   <button 
-                    className="bg-gray-100 text-gray-800 px-4 py-1 rounded flex items-center gap-1"
+                    className="flex justify-between gap-x-4 bg-gray-100 px-4 py-2 rounded-lg hover:bg-gray-200"
                     onClick={() => handleViewAssociation(association.id)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                    </svg>
-                    View
+                      <img src="/view.svg" alt="pic" width={18} height={18}/> 
+                      <span className='font-medium text-lg'>View</span>
                   </button>
+                
                 </td>
               </tr>
             ))}

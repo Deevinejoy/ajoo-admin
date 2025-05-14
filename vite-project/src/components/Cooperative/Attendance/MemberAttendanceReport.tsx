@@ -49,7 +49,7 @@ const MemberAttendanceReport: React.FC = () => {
   }
 
   return (
-    <div className="p-6 bg-[#F5F7FA] min-h-screen">
+    <div className="p-6 bg-[#F5F7FA]  min-h-screen">
       <div className="flex items-center justify-between mb-6">
         <button className="flex items-center gap-x-2 text-lg font-medium text-[#22223B]" onClick={() => navigate(-1)}>
           <svg width="24" height="24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#22223B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -119,7 +119,7 @@ const MemberAttendanceReport: React.FC = () => {
         <div className="font-semibold text-lg mb-4">Meetings Attendance History</div>
         <table className="w-full mb-4">
           <thead>
-            <tr className="text-[#BDBDBD] text-sm">
+            <tr className="text-[#BDBDBD] text-lg">
               <th className="text-left py-2">Date</th>
               <th className="text-left py-2">Meetings Name</th>
               <th className="text-left py-2">Type</th>

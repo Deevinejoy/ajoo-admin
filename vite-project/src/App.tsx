@@ -15,7 +15,7 @@ import Notifications from './components/Cooperative/Notifications';
 import LoanApplicationDetails from './components/Cooperative/Loans/LoanApplicationDetails';
 import MonthlySummary from './components/Cooperative/Attendance/MonthlySummary';
 import AttendanceTrends from './components/Cooperative/Attendance/AttendanceTrends';
-import MemberAttendanceReport from './components/Cooperative/Members/MemberAttendanceReport';
+import MemberAttendanceReport from './components/Cooperative/Attendance/MemberAttendanceReport';
 import LoginPage from './components/LoginPage';
 import ForgotPassword from './components/ForgotPassword';
 

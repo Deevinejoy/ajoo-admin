@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 
 const AssTransactionDetails: React.FC = () => {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ const AssTransactionDetails: React.FC = () => {
           </div>
           <div>
             <div className="text-[#939393] text-sm mb-1">Related Loan</div>
-            <a href="#" className="text-[#3161FF] underline">Loan #1</a>
+            <Link to="/association/loans/1" className="text-[#3161FF] underline">Loan #1</Link>
           </div>
           <button className="mt-4 bg-[#111827] text-white py-3 rounded-lg flex items-center justify-center gap-2 text-lg font-medium">
             <img src="/download.svg" alt="pic" width={20} height={20}/>

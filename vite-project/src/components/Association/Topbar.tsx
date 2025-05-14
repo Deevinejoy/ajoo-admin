@@ -27,41 +27,37 @@ const notificationList = [
 
 // Map to convert URL paths to readable page titles
 const pageTitles: Record<string, { title: string, description: string }> = {
-  '/dashboard': { 
+  '/association/dashboard': { 
     title: 'Dashboard', 
     description: 'Overview of registered associations and their performance' 
   },
-  '/associations': { 
-    title: 'Associations', 
-    description: 'Manage all associations and their details' 
-  },
-  '/members': { 
+  '/association/members': { 
     title: 'Members', 
-    description: 'View and manage all registered members' 
+    description: 'Manage all members and their details' 
   },
-  '/loans': { 
+  '/association/loans': { 
     title: 'Loans', 
     description: 'Overview of all active and pending loans' 
   },
-  '/attendance': { 
+  '/association/attendance': { 
     title: 'Attendance', 
-    description: 'Track attendance for association meetings' 
+    description: 'Track attendance for meetings' 
   },
-  '/transactions': { 
+  '/association/transactions': { 
     title: 'Transactions', 
     description: 'View all financial transactions' 
   },
-  '/reports': { 
+  '/association/reports': { 
     title: 'Reports', 
     description: 'Generate and view reports' 
   },
-  '/settings': { 
+  '/association/settings': { 
     title: 'Settings', 
     description: 'Configure system settings and preferences' 
   }
 };
 
-export default function AssTopbar({ toggleSidebar, sidebarVisible }: TopbarProps) {
+export default function Topbar({ toggleSidebar, sidebarVisible }: TopbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotif, setShowNotif] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
@@ -70,8 +66,7 @@ export default function AssTopbar({ toggleSidebar, sidebarVisible }: TopbarProps
   const location = useLocation();
   
   // Determine current page title and description
-  const currentPath = '/' + location.pathname.split('/')[1];
-  const pageInfo = pageTitles[currentPath] || { title: 'Dashboard', description: 'Overview of the system' };
+  const pageInfo = pageTitles[location.pathname] || { title: 'Dashboard', description: 'Overview of the system' };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent): void {

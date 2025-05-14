@@ -46,18 +46,18 @@ const Loans: React.FC = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-50">
+    <div className="p-4 md:p-8">
       {/* Add Loan Modal */}
       <AddLoanModal isOpen={isAddLoanOpen} onClose={() => setIsAddLoanOpen(false)} />
 
-      <div className="mb-1">
-        <h1 className="text-2xl font-semibold">Loans</h1>
-        <p className="text-gray-500 text-sm">Manage all cooperative loans</p>
+      <div className="mb-1 md:mb-2">
+        <h1 className="text-xl md:text-2xl font-medium">Loans</h1>
+        <p className="text-[#666666] text-sm md:text-base">Manage all cooperative loans</p>
       </div>
 
       {/* Search and Actions */}
-      <div className="flex justify-between my-6">
-        <div className="w-1/2 relative">
+      <div className="flex flex-col md:flex-row md:justify-between my-4 md:my-6 gap-3 md:gap-4">
+        <div className="w-full md:w-1/2 relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
@@ -71,58 +71,54 @@ const Loans: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-2 md:mt-0">
           <button 
-            className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2"
+            className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center gap-2 w-full md:w-auto"
             onClick={() => setIsAddLoanOpen(true)}
           >
             <span className="text-lg">+</span>
             Add loan
           </button>
-          <button className="border border-gray-300 px-4 py-2 rounded-md flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
+          <button className="border border-gray-300 px-4 py-2 rounded-md flex items-center justify-center gap-2 w-full md:w-auto">
+         <img src="/filter.svg" alt="filter"/>
             Filter
           </button>
         </div>
       </div>
 
       {/* Loans Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-x-auto">
         <table className="min-w-full">
           <thead>
-            <tr className="text-left text-gray-500">
-              <th className="p-4 font-normal">ID</th>
-              <th className="p-4 font-normal">Member</th>
-              <th className="p-4 font-normal">Association</th>
-              <th className="p-4 font-normal">Amount</th>
-              <th className="p-4 font-normal">Date</th>
-              <th className="p-4 font-normal">Due Date</th>
-              <th className="p-4 font-normal">Status</th>
-              <th className="p-4 font-normal">Actions</th>
+            <tr className="text-left text-[#939393]">
+              <th className="px-2 md:px-4 py-3 md:py-4 font-normal text-xs md:text-sm">ID</th>
+              <th className="px-2 md:px-4 py-3 md:py-4 font-normal text-xs md:text-sm">Member</th>
+              <th className="px-2 md:px-4 py-3 md:py-4 font-normal text-xs md:text-sm">Association</th>
+              <th className="px-2 md:px-4 py-3 md:py-4 font-normal text-xs md:text-sm">Amount</th>
+              <th className="px-2 md:px-4 py-3 md:py-4 font-normal text-xs md:text-sm">Date</th>
+              <th className="px-2 md:px-4 py-3 md:py-4 font-normal text-xs md:text-sm">Due Date</th>
+              <th className="px-2 md:px-4 py-3 md:py-4 font-normal text-xs md:text-sm">Status</th>
+              <th className="px-2 md:px-4 py-3 md:py-4 font-normal text-xs md:text-sm">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {loans.map((loan) => (
               <tr key={loan.id}>
-                <td className="p-4">{loan.id}</td>
-                <td className="p-4">{loan.member}</td>
-                <td className="p-4">{loan.association}</td>
-                <td className="p-4">{loan.amount}</td>
-                <td className="p-4">{loan.date}</td>
-                <td className="p-4">{loan.dueDate}</td>
-                <td className="p-4">{getStatusBadge(loan.status)}</td>
-                <td className="p-4">
+                <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.id}</td>
+                <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.member}</td>
+                <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.association}</td>
+                <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.amount}</td>
+                <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.date}</td>
+                <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.dueDate}</td>
+                <td className="px-2 md:px-4 py-3 md:py-4">{getStatusBadge(loan.status)}</td>
+                <td className="px-2 md:px-4 py-3 md:py-4">
+              
                   <button
                     onClick={() => handleViewLoan(loan.id)}
-                    className="inline-flex items-center gap-2 px-4 py-1 bg-gray-100 rounded"
+                   className="flex items-center gap-1 md:gap-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                    </svg>
-                    View
+                      <img src="/view.svg" alt="pic" width={16} height={16} className="md:w-[18px] md:h-[18px]"/> 
+                      <span className='font-medium text-xs md:text-sm'>View</span>
                   </button>
                 </td>
               </tr>
@@ -131,21 +127,21 @@ const Loans: React.FC = () => {
         </table>
 
         {/* Pagination */}
-        <div className="flex items-center justify-center py-4 border-t border-gray-200">
-          <span className="text-gray-500 mx-4">Previous page</span>
+        <div className="flex flex-col md:flex-row items-center justify-center py-4 border-t border-gray-200 text-xs md:text-sm overflow-x-auto">
+          <span className="text-[#939393] mx-1 md:mx-4 mb-2 md:mb-0">Previous page</span>
           <div className="flex space-x-1">
             {[1, 2, 3].map((page) => (
               <button
                 key={page}
-                className={`px-2 ${page === 1 ? 'text-blue-600' : 'text-gray-500'}`}
+                className={`px-2 ${page === 1 ? 'text-blue-600' : 'text-[#939393]'}`}
               >
                 {page}
               </button>
             ))}
-            <span className="text-gray-500">. . .</span>
-            <button className="px-2 text-gray-500">20</button>
+            <span className="text-[#939393]">...</span>
+            <button className="px-2 text-[#939393]">20</button>
           </div>
-          <span className="text-gray-500 mx-4">Next page</span>
+          <span className="text-[#939393] mx-1 md:mx-4 mt-2 md:mt-0">Next page</span>
         </div>
       </div>
     </div>

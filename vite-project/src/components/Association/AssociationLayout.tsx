@@ -1,21 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Topbar from './Topbar';
 import AssociationSidebar from './AssociationSidebar';
 
+// Define prop types for the components
+type SidebarProps = {
+  visible: boolean;
+};
+
+type TopbarProps = {
+  toggleSidebar: () => void;
+  sidebarVisible: boolean;
+};
+
+// Declare the components with their props
+const SidebarWithProps = AssociationSidebar as React.ComponentType<SidebarProps>;
+const TopbarWithProps = Topbar as React.ComponentType<TopbarProps>;
+
 const AssociationLayout: React.FC = () => {
-  const [sidebarVisible, setSidebarVisible] = useState(false);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   
+  // Handle sidebar toggle via custom event (for desktop)
+  useEffect(() => {
+    const handleToggleSidebar = () => {
+      if (!isMobile) {
+        setSidebarVisible(prev => !prev);
+      }
+    };
+    
+    window.addEventListener('toggle-sidebar', handleToggleSidebar);
+    
+    return () => {
+      window.removeEventListener('toggle-sidebar', handleToggleSidebar);
+    };
+  }, [isMobile]);
+  
+  // Check if we're on mobile on initial load and handle resize
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      // Auto-collapse sidebar on mobile only
+      if (mobile) {
+        setSidebarVisible(false);
+      }
+    };
+    
+    // Set initial state
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const toggleSidebar = () => {
-    setSidebarVisible(prev => !prev);
+    // Only toggle sidebar on mobile from the hamburger menu
+    if (isMobile) {
+      setSidebarVisible(!sidebarVisible);
+    }
   };
   
   return (
-    <div className="flex h-screen bg-[#E7E7E7] ">
-      <AssociationSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden ">
-        <Topbar toggleSidebar={toggleSidebar} sidebarVisible={sidebarVisible} />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+    <div className="flex flex-1 w-full bg-[#E7E7E7] min-h-screen overflow-hidden">
+      <SidebarWithProps visible={sidebarVisible} />
+      <div className={`flex-1 flex flex-col w-full transition-all duration-300 ${sidebarVisible ? 'md:ml-72' : 'md:ml-20'}`}>
+        <TopbarWithProps toggleSidebar={toggleSidebar} sidebarVisible={sidebarVisible} />
+        <main className="flex flex-col w-full flex-1 overflow-x-hidden">
           <Outlet />
         </main>
       </div>

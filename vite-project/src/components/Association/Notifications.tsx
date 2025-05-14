@@ -26,19 +26,19 @@ const Notifications: React.FC = () => {
 
   if (showManage) {
     return (
-      <div className="p-8">
-        <div className="flex items-center mb-6">
+      <div className="p-4 md:p-8">
+        <div className="flex items-center mb-4 md:mb-6">
           <button onClick={() => setShowManage(false)} className="mr-2 p-2 rounded hover:bg-gray-100">
             <svg width="24" height="24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#22223B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
-          <h2 className="text-2xl font-medium">Manage Notifications</h2>
+          <h2 className="text-xl md:text-2xl font-medium">Manage Notifications</h2>
         </div>
-        <div className="bg-white rounded-xl p-8">
-          <h3 className="text-xl font-semibold mb-6">Notifications Preferences</h3>
+        <div className="bg-white rounded-xl p-4 md:p-8">
+          <h3 className="text-lg md:text-xl font-semibold mb-4 md:mb-6">Notifications Preferences</h3>
           <div className="mb-4 flex items-center justify-between border-b pb-4">
             <div>
-              <div className="font-medium text-lg">Email Notifications</div>
-              <div className="text-[#939393] text-sm">Receive notifications via email</div>
+              <div className="font-medium text-base md:text-lg">Email Notifications</div>
+              <div className="text-[#939393] text-xs md:text-sm">Receive notifications via email</div>
             </div>
             <button
               type="button"
@@ -53,8 +53,8 @@ const Notifications: React.FC = () => {
           </div>
           <div className="mb-4 flex items-center justify-between border-b pb-4">
             <div>
-              <div className="font-medium text-lg">Push Notifications</div>
-              <div className="text-[#939393] text-sm">Receive notifications via email</div>
+              <div className="font-medium text-base md:text-lg">Push Notifications</div>
+              <div className="text-[#939393] text-xs md:text-sm">Receive notifications via email</div>
             </div>
             <button
               type="button"
@@ -67,10 +67,10 @@ const Notifications: React.FC = () => {
               />
             </button>
           </div>
-          <div className="mb-8 flex items-center justify-between border-b pb-4">
+          <div className="mb-6 md:mb-8 flex items-center justify-between border-b pb-4">
             <div>
-              <div className="font-medium text-lg">SMS Notifications</div>
-              <div className="text-[#939393] text-sm">Receive notifications via email</div>
+              <div className="font-medium text-base md:text-lg">SMS Notifications</div>
+              <div className="text-[#939393] text-xs md:text-sm">Receive notifications via email</div>
             </div>
             <button
               type="button"
@@ -83,10 +83,10 @@ const Notifications: React.FC = () => {
               />
             </button>
           </div>
-          <h3 className="text-xl font-semibold mb-4">Frequency Settings</h3>
-          <div className="mb-8">
+          <h3 className="text-lg md:text-xl font-semibold mb-4">Frequency Settings</h3>
+          <div className="mb-6 md:mb-8">
             <select
-              className="border border-gray-300 rounded-md p-2"
+              className="border border-gray-300 rounded-md p-2 w-full md:w-auto"
               value={frequency}
               onChange={e => setFrequency(e.target.value)}
             >
@@ -95,78 +95,78 @@ const Notifications: React.FC = () => {
               ))}
             </select>
           </div>
-          <button className="bg-[#111827] text-white px-6 py-2 rounded-lg">Save Changes</button>
+          <button className="bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg w-full md:w-auto">Save Changes</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      <div className="flex gap-2 mb-6">
+    <div className="p-4 md:p-8">
+      <div className="flex gap-2 mb-4 md:mb-6">
         <button
-          className={`px-6 py-2 rounded-t-lg font-medium ${tab === 'Notification' ? 'bg-[#F5F7FA] text-[#22223B]' : 'bg-[#ECEFF1] text-[#939393]'}`}
+          className={`px-3 md:px-6 py-2 rounded-t-lg font-medium text-sm md:text-base ${tab === 'Notification' ? 'bg-[#F5F7FA] text-[#22223B]' : 'bg-[#ECEFF1] text-[#939393]'}`}
           onClick={() => setTab('Notification')}
         >
           Notification
         </button>
         <button
-          className={`px-6 py-2 rounded-t-lg font-medium ${tab === 'Activity Log' ? 'bg-[#F5F7FA] text-[#22223B]' : 'bg-[#ECEFF1] text-[#939393]'}`}
+          className={`px-3 md:px-6 py-2 rounded-t-lg font-medium text-sm md:text-base ${tab === 'Activity Log' ? 'bg-[#F5F7FA] text-[#22223B]' : 'bg-[#ECEFF1] text-[#939393]'}`}
           onClick={() => setTab('Activity Log')}
         >
           Activity Log
         </button>
       </div>
-      <div className="bg-white rounded-xl p-8">
+      <div className="bg-white rounded-xl p-4 md:p-8">
         {tab === 'Notification' && (
           <>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-medium">Notifications</h2>
-              <button className="text-[#3B82F6] font-medium" onClick={() => setShowManage(true)}>Manage</button>
+            <div className="flex justify-between items-center mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-medium">Notifications</h2>
+              <button className="text-[#3B82F6] font-medium text-sm md:text-base" onClick={() => setShowManage(true)}>Manage</button>
             </div>
             <div>
               {notifications.map((n, i) => (
-                <div key={i} className="py-4 border-b border-[#ECECEC]">
-                  <div className="font-medium text-lg mb-1">{n.title}</div>
-                  <div className="text-[#373737] mb-1">{n.desc}</div>
-                  <div className="text-[#939393] text-sm">{n.time}</div>
+                <div key={i} className="py-3 md:py-4 border-b border-[#ECECEC]">
+                  <div className="font-medium text-base md:text-lg mb-1">{n.title}</div>
+                  <div className="text-[#373737] text-sm md:text-base mb-1">{n.desc}</div>
+                  <div className="text-[#939393] text-xs md:text-sm">{n.time}</div>
                 </div>
               ))}
             </div>
-            <div className="flex justify-center items-center gap-2 mt-8 text-[#939393]">
-              <span>Previous page</span>
-              <span className="font-semibold text-black">1</span>
-              <span>2</span>
-              <span>3</span>
+            <div className="flex flex-wrap justify-center items-center gap-2 mt-6 md:mt-8 text-[#939393] text-sm md:text-base">
+              <span className="cursor-pointer">Previous page</span>
+              <span className="font-semibold text-black cursor-pointer">1</span>
+              <span className="cursor-pointer">2</span>
+              <span className="cursor-pointer">3</span>
               <span>...</span>
-              <span>20</span>
-              <span>Next page</span>
+              <span className="cursor-pointer">20</span>
+              <span className="cursor-pointer">Next page</span>
             </div>
           </>
         )}
         {tab === 'Activity Log' && (
           <>
-            <h2 className="text-2xl font-medium mb-6">Recent Activity</h2>
+            <h2 className="text-xl md:text-2xl font-medium mb-4 md:mb-6">Recent Activity</h2>
             <div>
               {activities.map((a, i) => (
-                <div key={i} className="py-4 border-b border-[#ECECEC] flex items-center justify-between">
+                <div key={i} className="py-3 md:py-4 border-b border-[#ECECEC] flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                   <div>
-                    <div className="font-medium text-lg mb-1">{a.title}</div>
-                    <div className="text-[#373737] mb-1">{a.desc}</div>
-                    <div className="text-[#939393] text-sm">{a.time}</div>
+                    <div className="font-medium text-base md:text-lg mb-1">{a.title}</div>
+                    <div className="text-[#373737] text-sm md:text-base mb-1">{a.desc}</div>
+                    <div className="text-[#939393] text-xs md:text-sm">{a.time}</div>
                   </div>
-                  <span className="bg-[#FFF9DB] text-[#EAB308] px-4 py-1 rounded-full text-sm font-medium">{a.status}</span>
+                  <span className="bg-[#FFF9DB] text-[#EAB308] px-4 py-1 rounded-full text-xs md:text-sm font-medium self-start md:self-auto">{a.status}</span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-center items-center gap-2 mt-8 text-[#939393]">
-              <span>Previous page</span>
-              <span className="font-semibold text-black">1</span>
-              <span>2</span>
-              <span>3</span>
+            <div className="flex flex-wrap justify-center items-center gap-2 mt-6 md:mt-8 text-[#939393] text-sm md:text-base">
+              <span className="cursor-pointer">Previous page</span>
+              <span className="font-semibold text-black cursor-pointer">1</span>
+              <span className="cursor-pointer">2</span>
+              <span className="cursor-pointer">3</span>
               <span>...</span>
-              <span>20</span>
-              <span>Next page</span>
+              <span className="cursor-pointer">20</span>
+              <span className="cursor-pointer">Next page</span>
             </div>
           </>
         )}

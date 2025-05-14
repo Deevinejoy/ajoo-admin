@@ -11,7 +11,7 @@ export default function Dashboard() {
       ];
     
     return (
-        <div className="p-4 md:m-8 overflow-x-hidden">
+        <div className="p-4 md:m-8 overflow-x-hidden bg-[#F5F7FA]">
             {/* Dashboard Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6">
                 {/* Card 1 */}

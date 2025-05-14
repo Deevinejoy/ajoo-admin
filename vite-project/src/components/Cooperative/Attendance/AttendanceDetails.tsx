@@ -44,8 +44,8 @@ const AttendanceDetails: React.FC = () => {
   // If association not found, show a message or redirect
   if (!association) {
     return (
-      <div className="p-6 pt-1">
-        <h1 className="text-2xl font-medium">Association not found</h1>
+      <div className="p-4 md:p-6 pt-1 md:pt-2">
+        <h1 className="text-xl md:text-2xl font-medium">Association not found</h1>
         <button 
           className="mt-4 bg-[#3161FF] text-white px-4 py-2 rounded-lg"
           onClick={() => navigate('/attendance')}
@@ -57,202 +57,209 @@ const AttendanceDetails: React.FC = () => {
   }
 
   return (
-    <div className="p-6 pt-1">
-      <div className="flex justify-between items-center mb-5">
+    <div className="p-4 md:p-6 pt-2 md:pt-3 bg-[#F5F7FA]">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-5 gap-3 md:gap-0">
         <div>
-          <h1 className="text-2xl font-medium">{association.name} - Attendance</h1>
-          <p className="text-[#666666]">Manage association attendance records</p>
+          <h1 className="text-xl md:text-2xl font-medium">{association.name} - Attendance</h1>
+          <p className="text-[#666666] text-sm md:text-base">Manage association attendance records</p>
         </div>
-        <button className="bg-[#3161FF] text-white px-6 py-2 rounded-lg flex items-center gap-x-2 font-medium">
+        <button className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center md:justify-start gap-x-2 font-medium w-full md:w-auto">
           + Add Meeting
         </button>
       </div>
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-6 mb-6">
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 mb-4 md:mb-6">
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center">
                 <div>
-                    <h3 className="text-[#373737]">Total Meetings</h3>
-                    <p className="text-2xl font-semibold">24</p>
+                    <h3 className="text-[#373737] text-sm md:text-base">Total Meetings</h3>
+                    <p className="text-xl md:text-2xl font-semibold">24</p>
                 </div>
                 <div className="self-center">
-                    <img src="/briefcase.svg" alt="pic" />
+                    <img src="/briefcase.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
                 </div>
             </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center">
                 <div>
-                    <h3 className="text-[#373737]">Avg. Attendance</h3>
-                    <p className="text-2xl font-semibold">{association.avgAttendance}</p>
+                    <h3 className="text-[#373737] text-sm md:text-base">Avg. Attendance</h3>
+                    <p className="text-xl md:text-2xl font-semibold">{association.avgAttendance}</p>
                 </div>
                 <div className="self-center">
-                    <img src="/people.svg" alt="pic" />
+                    <img src="/people.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
                 </div>
             </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="bg-white p-4 md:p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center">
                 <div>
-                    <h3 className="text-[#373737]">Next Meeting</h3>
-                    <p className="text-xl font-semibold">April 12</p>
+                    <h3 className="text-[#373737] text-sm md:text-base">Next Meeting</h3>
+                    <p className="text-lg md:text-xl font-semibold">April 12</p>
                 </div>
                 <div className="self-center">
-                    <img src="/loans1.svg" alt="pic" />
+                    <img src="/loans1.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
                 </div>
             </div>
         </div>
      
       </div>
       {/* Tabs */}
-      <div className="flex gap-8 border-b border-[#E5E5E5] mb-4">
+      <div className="flex gap-4 md:gap-8 border-b border-[#E5E5E5] mb-4 overflow-x-auto">
         <button
-          className={`pb-2 px-1 font-medium ${tab === 'Meeting Tracker' ? 'border-b-2 border-[#3161FF] text-[#3161FF]' : 'text-gray-500'}`}
+          className={`pb-2 px-1 font-medium text-sm md:text-base ${tab === 'Meeting Tracker' ? 'border-b-2 border-[#3161FF] text-[#3161FF]' : 'text-[#939393]'}`}
           onClick={() => setTab('Meeting Tracker')}
         >
           Meeting Tracker
         </button>
         <button
-          className={`pb-2 px-1 font-medium ${tab === 'Attendance Reports' ? 'border-b-2 border-[#3161FF] text-[#3161FF]' : 'text-gray-500'}`}
+          className={`pb-2 px-1 font-medium text-sm md:text-base ${tab === 'Attendance Reports' ? 'border-b-2 border-[#3161FF] text-[#3161FF]' : 'text-[#939393]'}`}
           onClick={() => setTab('Attendance Reports')}
         >
           Attendance Reports
         </button>
       </div>
       {/* Search and Filters */}
-      <div className="flex items-center gap-4 mb-4">
-        <input
-          type="text"
-          placeholder={`Search by members name or ID...`}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3161FF]"
-        />
-        <button className="flex items-center gap-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+      <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 mb-4">
+        <div className="relative w-full md:w-auto md:flex-grow">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            placeholder={`Search by members name or ID...`}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3161FF]"
+          />
+        </div>
+        <button className="flex items-center justify-center gap-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 whitespace-nowrap w-full md:w-auto">
          <img src="/filter.svg" alt="pic" width={18} height={18}/>
-         <p className='w-full text-nowrap'>Last 30days</p>
+         <span className="text-sm">Last 30days</span>
         </button>
-        <button className="flex items-center gap-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50">
+        <button className="flex items-center justify-center gap-x-2 border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 whitespace-nowrap w-full md:w-auto">
          <img src="/filter.svg" alt="pic" width={18} height={18}/>
-         <p className='w-full text-nowrap'>All members</p>
+         <span className="text-sm">All members</span>
         </button>
-     
       </div>
       {/* Tab Content */}
       {tab === 'Meeting Tracker' ? (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Meetings</h2>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Date</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Meeting Name</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Type</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Attendees</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Attendance %</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {meetingData.map((m, i) => (
-                <tr key={i} className="border-b border-gray-200">
-                  <td className="py-4 px-6 text-[#373737]">{m.date}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.name}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.type}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.attendees}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.percent}</td>
-                  <td className="py-4 px-6 flex gap-2">
-                    <button
-                      className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg"
-                      onClick={() => navigate(`/attendance/meeting/${m.id}`)}
-                    >
-                      Details
-                    </button>
-                    <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg">Edit</button>
-                  </td>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Recent Meetings</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px]">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Date</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Meeting Name</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Type</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Attendees</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Attendance %</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {meetingData.map((m, i) => (
+                  <tr key={i} className="border-b border-gray-200">
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.date}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.name}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.type}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attendees}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.percent}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 flex gap-2">
+                      <button
+                        className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm"
+                        onClick={() => navigate(`/attendance/meeting/${m.id}`)}
+                      >
+                        Details
+                      </button>
+                      <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm">Edit</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {/* Footer Buttons */}
-          <div className="flex gap-4 mt-6">
-            <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg">Quick report</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate(`/attendance/monthly-summary/${id}`)}>View monthly summary</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate(`/attendance/trends/${id}`)}>View attendance trends</button>
-            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-4 py-2 rounded-lg" onClick={() => navigate(`/attendance/member-report/${id}`)}>Members report</button>
-            <button className="bg-[#3161FF] text-white px-4 py-2 rounded-lg">Export all data</button>
+          <div className="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-6">
+            <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-3 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm">Quick report</button>
+            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-3 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm" onClick={() => navigate(`/attendance/monthly-summary/${id}`)}>View monthly summary</button>
+            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-3 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm" onClick={() => navigate(`/attendance/trends/${id}`)}>View attendance trends</button>
+            <button className="bg-white border border-[#3161FF] text-[#3161FF] px-3 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm" onClick={() => navigate(`/attendance/member-report/${id}`)}>Members report</button>
+            <button className="bg-[#3161FF] text-white px-3 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm">Export all data</button>
           </div>
           {/* Pagination */}
-          <div className="flex items-center justify-between p-4">
-            <span className="text-gray-600">Previous page</span>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row items-center justify-between p-2 md:p-4 text-xs md:text-sm overflow-x-auto">
+            <span className="text-[#939393] mb-2 md:mb-0">Previous page</span>
+            <div className="flex items-center gap-1 md:gap-2">
               {[1, 2, 3, '...', 20].map((page, index) => (
                 <button
                   key={index}
-                  className={`px-3 py-1 rounded ${page === 1 ? 'bg-[#3161FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`px-2 md:px-3 py-1 rounded ${page === 1 ? 'bg-[#3161FF] text-white' : 'text-[#939393] hover:bg-gray-100'}`}
                 >
                   {page}
                 </button>
               ))}
             </div>
-            <span className="text-gray-600">Next page</span>
+            <span className="text-[#939393] mt-2 md:mt-0">Next page</span>
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Members Attendance</h2>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Member Name</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Member ID</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Meetings attended</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Attendance Rate</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Last Attended</th>
-                <th className="text-left py-4 px-6 text-[#939393] font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {attendanceData.map((m, i) => (
-                <tr key={i} className="border-b border-gray-200">
-                  <td className="py-4 px-6 text-[#373737]">{m.name}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.id}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.attended}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.rate}</td>
-                  <td className="py-4 px-6 text-[#373737]">{m.last}</td>
-                  <td className="py-4 px-6">
-                    <button 
-                      className="bg-[#3161FF] text-white px-4 py-1 rounded-md flex items-center gap-1"
-                      onClick={() => navigate(`/attendance/member/${m.id}`)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      View
-                    </button>
-                  </td>
+        <div className="bg-white rounded-lg shadow p-4 md:p-6">
+          <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Members Attendance</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px]">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Member Name</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Member ID</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Meetings attended</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Attendance Rate</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Last Attended</th>
+                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {attendanceData.map((m, i) => (
+                  <tr key={i} className="border-b border-gray-200">
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.name}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.id}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attended}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.rate}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.last}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6">
+                    <button
+                    onClick={() => navigate(`/attendance/member/${m.id}`)}
+                    className="flex items-center gap-1 md:gap-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
+                    >
+                        <img src="/view.svg" alt="pic" width={16} height={16} className="md:w-[18px] md:h-[18px]"/> 
+                        <span className='font-medium text-xs md:text-sm'>View</span>
+                    </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {/* Footer Buttons */}
-          <div className="flex gap-4 mt-6">
-            <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-4 py-2 rounded-lg">Quick report</button>
-            <button className="bg-[#3161FF] text-white px-4 py-2 rounded-lg ml-auto">+ Export</button>
+          <div className="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-6">
+            <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-3 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm">Quick report</button>
+            <button className="bg-[#3161FF] text-white px-3 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm ml-0 md:ml-auto">+ Export</button>
           </div>
           {/* Pagination */}
-          <div className="flex items-center justify-between p-4">
-            <span className="text-gray-600">Previous page</span>
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row items-center justify-between p-2 md:p-4 text-xs md:text-sm overflow-x-auto">
+            <span className="text-[#939393] mb-2 md:mb-0">Previous page</span>
+            <div className="flex items-center gap-1 md:gap-2">
               {[1, 2, 3, '...', 20].map((page, index) => (
                 <button
                   key={index}
-                  className={`px-3 py-1 rounded ${page === 1 ? 'bg-[#3161FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`px-2 md:px-3 py-1 rounded ${page === 1 ? 'bg-[#3161FF] text-white' : 'text-[#939393] hover:bg-gray-100'}`}
                 >
                   {page}
                 </button>
               ))}
             </div>
-            <span className="text-gray-600">Next page</span>
+            <span className="text-[#939393] mt-2 md:mt-0">Next page</span>
           </div>
         </div>
       )}

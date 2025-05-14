@@ -1,3 +1,4 @@
+import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -46,95 +47,111 @@ const MemberProfile: React.FC = () => {
 
     const renderPagination = () => {
         return (
-            <div className="flex items-center justify-center text-sm space-x-1">
-                <span className="text-gray-500">Previous page</span>
+            <div className="flex items-center justify-center text-xs md:text-sm space-x-1 overflow-x-auto">
+                <span className="text-[#939393]">Previous page</span>
                 <span className="text-blue-600 font-medium">1</span>
-                <span className="text-gray-500">2</span>
-                <span className="text-gray-500">3</span>
-                <span className="text-gray-500">. . .</span>
-                <span className="text-gray-500">20</span>
-                <span className="text-gray-500">Next page</span>
+                <span className="text-[#939393]">2</span>
+                <span className="text-[#939393]">3</span>
+                <span className="text-[#939393]">...</span>
+                <span className="text-[#939393]">20</span>
+                <span className="text-[#939393]">Next page</span>
             </div>
         );
     };
 
     return (
-        <div className="bg-gray-50 min-h-screen">
-            <div className="p-8">
+        <div className="min-h-screen">
+            <div className="p-4 md:p-8">
                 {/* Back button */}
                 <button 
                     onClick={() => navigate('/members')}
-                    className="text-gray-500 mb-8 flex items-center"
+                    className="text-[#373737] mb-4 md:mb-8 flex items-center"
                 >
-                    ←
+                     <ChevronLeft className="w-5 h-5" />
                 </button>
 
-                <div className="flex">
+                <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                     {/* Left sidebar - Member info */}
-                    <div className="w-1/4 bg-white rounded-lg shadow-sm p-6 mr-6">
-                        <div className="flex flex-col items-center mb-6">
-                            <div className="w-24 h-24 bg-gray-200 rounded-full mb-4"></div>
-                            <h2 className="text-xl font-medium">{memberData.name}</h2>
-                            <p className="text-gray-500">{memberData.role}</p>
-                            <p className="text-gray-500 mt-2">{memberData.association}</p>
-                            <p className="text-gray-500 mt-1">Joined: {memberData.joined}</p>
+                    <div className="w-full md:w-1/4 bg-white rounded-lg shadow-sm p-4 md:p-6 mb-4 md:mb-0">
+                        <div className="flex flex-col items-center mb-4 md:mb-6">
+                            <div className="w-16 h-16 md:w-24 md:h-24 bg-gray-200 rounded-full mb-3 md:mb-4"></div>
+                            <h2 className="text-lg md:text-xl font-medium">{memberData.name}</h2>
+                            <p className="text-[#939393] text-sm md:text-base">{memberData.role}</p>
+                            <p className="text-[#939393] text-sm md:text-base mt-1 md:mt-2">{memberData.association}</p>
+                            <p className="text-[#939393] text-sm md:text-base mt-1">Joined: {memberData.joined}</p>
                         </div>
 
-                        <div className="border-t pt-4">
-                            <div className="flex justify-between py-2">
-                                <span className="text-gray-600">Member:</span>
+                        <div className="border-t border-[#9E9E9E] pt-3 md:pt-4">
+                            <div className="flex justify-between py-2 text-sm md:text-base">
+                                <span className="text-[#373737]">Member:</span>
                                 <span className="font-medium">{memberData.memberNumber}</span>
                             </div>
-                            <div className="flex justify-between py-2">
-                                <span className="text-gray-600">Loan Status:</span>
+                            <div className="flex justify-between py-2 text-sm md:text-base">
+                                <span className="text-[#373737]">Loan Status:</span>
                                 <span className="text-blue-600">{memberData.loanStatus}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Main content area */}
-                    <div className="w-3/4">
+                    <div className="w-full md:w-3/4">
                         {/* Tabs */}
-                        <div className="bg-white rounded-t-lg overflow-hidden">
-                            <div className="flex">
+                        <div className="border-b border-gray-200 overflow-x-auto">
+                            <div className="flex space-x-1">
                                 <button 
-                                    className={`py-4 px-12 ${activeTab === 'loans' ? 'bg-white' : 'bg-gray-100'}`}
+                                    className={`py-2 md:py-3 px-4 md:px-8 font-medium transition-colors relative text-sm md:text-base ${
+                                        activeTab === 'loans' 
+                                        ? 'text-blue-600 hover:text-blue-700' 
+                                        : 'text-[#373737] hover:text-gray-900'
+                                    }`}
                                     onClick={() => setActiveTab('loans')}
+                                    aria-current={activeTab === 'loans' ? 'page' : undefined}
                                 >
                                     Loans
+                                    {activeTab === 'loans' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+                                    )}
                                 </button>
                                 <button 
-                                    className={`py-4 px-12 ${activeTab === 'transactions' ? 'bg-white' : 'bg-gray-100'}`}
+                                    className={`py-2 md:py-3 px-4 md:px-8 font-medium transition-colors relative text-sm md:text-base ${
+                                        activeTab === 'transactions' 
+                                        ? 'text-blue-600 hover:text-blue-700' 
+                                        : 'text-[#373737] hover:text-gray-900'
+                                    }`}
                                     onClick={() => setActiveTab('transactions')}
+                                    aria-current={activeTab === 'transactions' ? 'page' : undefined}
                                 >
                                     Transactions
+                                    {activeTab === 'transactions' && (
+                                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+                                    )}
                                 </button>
                             </div>
                         </div>
-
+                        
                         {/* Tab content */}
-                        <div className="bg-white rounded-b-lg shadow-sm p-6">
+                        <div className="bg-white rounded-b-lg shadow-md p-4 md:p-6 overflow-x-auto">
                             {activeTab === 'loans' && (
                                 <>
-                                    <h3 className="text-lg font-medium mb-4">Loan History</h3>
+                                    <h3 className="text-base md:text-lg font-medium mb-3 md:mb-4">Loan History</h3>
                                     <table className="min-w-full">
                                         <thead>
-                                            <tr className="text-left text-gray-500 border-b">
-                                                <th className="pb-2 font-normal">Loan ID</th>
-                                                <th className="pb-2 font-normal">Amount</th>
-                                                <th className="pb-2 font-normal">Date</th>
-                                                <th className="pb-2 font-normal">Due Date</th>
-                                                <th className="pb-2 font-normal">Status</th>
+                                            <tr className="text-left text-[#939393]">
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Loan ID</th>
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Amount</th>
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Date</th>
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Due Date</th>
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {loanHistory.map((loan, index) => (
-                                                <tr key={index} className="border-b">
-                                                    <td className="py-3">{loan.member}</td>
-                                                    <td className="py-3">{loan.amount}</td>
-                                                    <td className="py-3">{loan.date}</td>
-                                                    <td className="py-3">{loan.dueDate}</td>
-                                                    <td className="py-3">{getStatusBadge(loan.status)}</td>
+                                                <tr key={index} className="">
+                                                    <td className="py-2 md:py-3 text-xs md:text-sm">{loan.member}</td>
+                                                    <td className="py-2 md:py-3 text-xs md:text-sm">{loan.amount}</td>
+                                                    <td className="py-2 md:py-3 text-xs md:text-sm">{loan.date}</td>
+                                                    <td className="py-2 md:py-3 text-xs md:text-sm">{loan.dueDate}</td>
+                                                    <td className="py-2 md:py-3">{getStatusBadge(loan.status)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -144,23 +161,23 @@ const MemberProfile: React.FC = () => {
 
                             {activeTab === 'transactions' && (
                                 <>
-                                    <h3 className="text-lg font-medium mb-4">Transaction History</h3>
+                                    <h3 className="text-base md:text-lg font-medium mb-3 md:mb-4">Transaction History</h3>
                                     <table className="min-w-full">
                                         <thead>
-                                            <tr className="text-left text-gray-500 border-b">
-                                                <th className="pb-2 font-normal">Date</th>
-                                                <th className="pb-2 font-normal">Type</th>
-                                                <th className="pb-2 font-normal">Amount</th>
-                                                <th className="pb-2 font-normal">Status</th>
+                                            <tr className="text-left text-[#939393]">
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Date</th>
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Type</th>
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Amount</th>
+                                                <th className="pb-2 font-normal text-xs md:text-sm">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {transactionHistory.map((transaction, index) => (
-                                                <tr key={index} className="border-b">
-                                                    <td className="py-3">{transaction.date}</td>
-                                                    <td className="py-3">{transaction.type}</td>
-                                                    <td className="py-3 text-red-500">{transaction.amount}</td>
-                                                    <td className="py-3">{getStatusBadge(transaction.status)}</td>
+                                                <tr key={index} className="">
+                                                    <td className="py-2 md:py-3 text-xs md:text-sm">{transaction.date}</td>
+                                                    <td className="py-2 md:py-3 text-xs md:text-sm">{transaction.type}</td>
+                                                    <td className="py-2 md:py-3 text-red-500 text-xs md:text-sm">{transaction.amount}</td>
+                                                    <td className="py-2 md:py-3">{getStatusBadge(transaction.status)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -169,7 +186,7 @@ const MemberProfile: React.FC = () => {
                             )}
 
                             {/* Pagination */}
-                            <div className="flex justify-center mt-6">
+                            <div className="flex justify-center mt-4 md:mt-6">
                                 {renderPagination()}
                             </div>
                         </div>
@@ -180,4 +197,4 @@ const MemberProfile: React.FC = () => {
     );
 };
 
-export default MemberProfile; 
+export default MemberProfile;
