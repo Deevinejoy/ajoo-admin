@@ -22,7 +22,7 @@ const AssAttendance: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-3 md:p-6 pt-1 md:pt-1">
+    <div className="p-3 pt-3 md:p-6  md:pt-3">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-0 mb-3 md:mb-5">
         <div>
           <h1 className="text-xl md:text-2xl font-medium">Attendance</h1>

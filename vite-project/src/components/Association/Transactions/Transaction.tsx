@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 
 const transactions = [
   { date: '2022-01-15', type: 'Repayment', amount: '+₦500,000', status: 'completed' },
@@ -30,7 +30,7 @@ const AmountText = ({ amount }: { amount: string }) => {
 
 const AssTransaction: React.FC = () => {
   const [search, setSearch] = useState('');
-  const navigate = useNavigate();
+ // const navigate = useNavigate();
 
   return (
     <div className="p-4 md:p-6">

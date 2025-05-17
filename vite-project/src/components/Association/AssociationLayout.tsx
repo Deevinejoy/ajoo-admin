@@ -77,7 +77,7 @@ const AssociationLayout: React.FC = () => {
       <SidebarWithProps visible={sidebarVisible} />
       <div className={`flex-1 flex flex-col w-full transition-all duration-300 ${sidebarVisible ? 'md:ml-72' : 'md:ml-20'}`}>
         <TopbarWithProps toggleSidebar={toggleSidebar} sidebarVisible={sidebarVisible} />
-        <main className="flex flex-col w-full flex-1 overflow-x-hidden">
+        <main className="flex flex-col w-full flex-1 overflow-x-hidden  bg-[#F5F7FA]">
           <Outlet />
         </main>
       </div>
