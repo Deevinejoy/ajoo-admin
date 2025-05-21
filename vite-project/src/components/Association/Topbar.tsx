@@ -94,43 +94,43 @@ export default function Topbar({ toggleSidebar, sidebarVisible }: TopbarProps) {
         />
       )}
       
-      <div className="flex justify-between items-center p-4 md:p-5">
+      <div className="flex justify-between items-center p-2 sm:p-3 md:p-4">
         <div className="flex items-center">
           <button 
             onClick={toggleSidebar}
-            className="mr-3 focus:outline-none p-2 rounded-md hover:bg-gray-100 z-40 md:hidden block"
+            className="mr-2 focus:outline-none p-1 rounded-md hover:bg-gray-100 z-40 md:hidden block"
             aria-label="Toggle sidebar"
           >
-            {sidebarVisible ? <X size={24} /> : <Menu size={24} />}
+            {sidebarVisible ? <X size={18} /> : <Menu size={18} />}
           </button>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold">{pageInfo.title}</h1>
-            <p className="text-sm md:text-[16px] text-black hidden md:block">{pageInfo.description}</p>
+            <h1 className="text-base sm:text-lg md:text-xl font-bold">{pageInfo.title}</h1>
+            <p className="text-xs md:text-sm text-black hidden md:block">{pageInfo.description}</p>
           </div>
         </div>
         
-        <div className="hidden md:block relative w-64 bg-[#F5F7FA]">
+        <div className="hidden md:block relative w-40 sm:w-48 md:w-56 bg-[#F5F7FA]">
           <img
             src="/search.png"
             alt="search"
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-400"
           />
           <input
             type="text"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full p-2 pl-10 border border-gray-300 rounded-md"
+            className="w-full p-1 sm:p-1.5 pl-6 sm:pl-8 text-xs sm:text-sm border border-gray-300 rounded-md"
           />
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button 
             onClick={() => setShowMobileSearch(!showMobileSearch)}
             className="md:hidden"
             aria-label="Toggle search"
           >
-            <img src="/search.png" alt="search" className="w-5 h-5" />
+            <img src="/search.png" alt="search" className="w-3 h-3 sm:w-4 sm:h-4" />
           </button>
           
           <div className="relative" ref={notifRef}>
@@ -139,23 +139,23 @@ export default function Topbar({ toggleSidebar, sidebarVisible }: TopbarProps) {
               onClick={() => setShowNotif((v) => !v)}
               aria-label="Show notifications"
             >
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-              <img src="/notif.svg" alt="notification" />
+              <span className="absolute top-0 right-0 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+              <img src="/notif.svg" alt="notification" className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             {showNotif && (
-              <div className="absolute right-0 mt-4 w-72 md:w-96 bg-white rounded-xl shadow-lg z-50 p-4">
-                <div className="font-medium text-lg mb-4">Notification</div>
+              <div className="absolute right-0 mt-2 sm:mt-3 w-56 sm:w-64 md:w-72 bg-white rounded-xl shadow-lg z-50 p-2 sm:p-3">
+                <div className="font-medium text-sm sm:text-base mb-2 sm:mb-3">Notification</div>
                 <div>
                   {notificationList.map((n, i) => (
-                    <div key={i} className="mb-4 last:mb-0">
-                      <div className="font-medium">{n.title}</div>
-                      <div className="text-[#373737] text-sm">{n.desc}</div>
-                      <div className="text-[#939393] text-xs">{n.time}</div>
+                    <div key={i} className="mb-2 sm:mb-3 last:mb-0">
+                      <div className="font-medium text-xs sm:text-sm">{n.title}</div>
+                      <div className="text-[#373737] text-[10px] sm:text-xs">{n.desc}</div>
+                      <div className="text-[#939393] text-[8px] sm:text-[10px]">{n.time}</div>
                     </div>
                   ))}
                 </div>
                 <button
-                  className="w-full text-[#3161FF] text-center mt-2 font-medium hover:underline"
+                  className="w-full text-[#3161FF] text-xs sm:text-sm text-center mt-1 sm:mt-2 font-medium hover:underline"
                   onClick={() => {
                     setShowNotif(false);
                     navigate("/notifications");
@@ -167,28 +167,28 @@ export default function Topbar({ toggleSidebar, sidebarVisible }: TopbarProps) {
             )}
           </div>
           
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-sm">JD</div>
-            <span className="hidden md:inline">John Doe</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gray-300 rounded-full flex items-center justify-center text-xs sm:text-sm">JD</div>
+            <span className="hidden md:inline text-xs sm:text-sm">John Doe</span>
           </div>
         </div>
       </div>
 
       {/* Mobile search bar */}
       {showMobileSearch && (
-        <div className="p-4 md:hidden">
+        <div className="p-2 md:hidden">
           <div className="relative w-full bg-[#F5F7FA]">
             <img
               src="/search.png"
               alt="search"
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-400"
             />
             <input
               type="text"
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-2 pl-10 border border-gray-300 rounded-md"
+              className="w-full p-1 sm:p-1.5 pl-6 sm:pl-8 text-xs sm:text-sm border border-gray-300 rounded-md"
             />
           </div>
         </div>

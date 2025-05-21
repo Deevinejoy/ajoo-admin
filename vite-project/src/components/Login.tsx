@@ -11,10 +11,10 @@ const Login: React.FC = () => {
     // Redirect based on role
     if (role === 'admin') {
       navigate('/dashboard');
-    } else  (role === 'association') {
+    } else if (role === 'association') {
       navigate('/association/dashboard');
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center">

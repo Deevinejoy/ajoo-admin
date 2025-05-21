@@ -73,14 +73,14 @@ const LoginPage: React.FC = () => {
       </div>
 
       
-<div className="mt-6">
+{/* <div className="mt-6">
         {/* <button 
           className="text-[#E5B93E] text-sm hover:underline"
           onClick={() => navigate('/home')}
         >
           Back to homepage
         </button>
-      </div> */}
+      </div> */} 
       <div className="mt-6 text-white text-xs">
         © Ajoo.me. All Rights Reserved
       </div>
