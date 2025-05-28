@@ -70,17 +70,18 @@ export default function Layout() {
       {/* Mobile backdrop overlay */}
       {isMobile && sidebarVisible && (
         <div 
-          className="fixed inset-0 bg-white/70 backdrop-blur-sm z-10"
+          className="fixed inset-0 bg-white/30 backdrop-blur-sm z-10"
           onClick={toggleSidebar}
         />
       )}
       <SidebarWithProps visible={sidebarVisible} />
-      <div className={`flex-1 flex flex-col w-full transition-all duration-300 ${sidebarVisible ? 'md:ml-72' : 'md:ml-20'}`}>
+      <div className={`flex-1 flex flex-col w-full transition-all duration-300 ${sidebarVisible ? 'md:ml-64' : 'md:ml-20'}`}>
         <TopbarWithProps toggleSidebar={toggleSidebar} sidebarVisible={sidebarVisible} />
         <main className="flex flex-col w-full flex-1 overflow-x-hidden bg-[#F5F7FA]"> 
           <Outlet />
         </main>
       </div>
+    
     </div>
   );
 }

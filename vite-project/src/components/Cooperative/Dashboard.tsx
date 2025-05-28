@@ -20,11 +20,11 @@ export default function Dashboard() {
                         <p className="text-[#373737] text-xs sm:text-sm md:text-base">Total Associations</p>
                         <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">15</h2>
                         <p className="text-[#373737] text-xs md:text-sm self-center">Across all regions</p>
-                    </div>
-                    <div className="self-center">
+            </div>
+            <div className="self-center">
                         <img src="/briefcase.svg" alt="Associations" className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
-                    </div>
-                </div>
+            </div>
+          </div>
 
                 {/* Card 2 */}
                 <div className="bg-white rounded-[10px] shadow-md flex justify-between p-3 sm:p-4 md:p-6">
@@ -32,17 +32,17 @@ export default function Dashboard() {
                         <p className="text-[#373737] text-xs sm:text-sm md:text-base">Total Members</p>
                         <div className="flex gap-x-[6px] sm:gap-x-[10px] items-center">
                             <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">1200</h2>
-                            <div className="flex gap-x-1">
+                <div className="flex gap-x-1">
                                 <img src="/up.svg" alt="Increase" className="w-3 h-3 sm:w-4 sm:h-4" />
                                 <p className="text-[#0F8B42] text-[8px] sm:text-[10px] md:text-[12px] self-center">8%</p>
-                            </div>
-                        </div>
-                        <p className="text-[#373737] text-xs md:text-sm self-center">Active members</p>
-                    </div>
-                    <div className="self-center">
-                        <img src="/people.svg" alt="Members" className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
-                    </div>
                 </div>
+              </div>
+                        <p className="text-[#373737] text-xs md:text-sm self-center">Active members</p>
+            </div>
+            <div className="self-center">
+                        <img src="/people.svg" alt="Members" className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
+            </div>
+          </div>
 
                 {/* Card 3 */}
                 <div className="bg-white rounded-[10px] shadow-md flex justify-between p-3 sm:p-4 md:p-6">
@@ -50,7 +50,7 @@ export default function Dashboard() {
                         <p className="text-[#373737] text-xs sm:text-sm md:text-base">Active Loans</p>
                         <div className="flex gap-x-[6px] sm:gap-x-[10px] items-center">
                             <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">340</h2>
-                            <div className="flex gap-x-1">
+                <div className="flex gap-x-1">
                                 <img src="/up.svg" alt="Increase" className="w-3 h-3 sm:w-4 sm:h-4" />
                                 <p className="text-[#0F8B42] text-[8px] sm:text-[10px] md:text-[12px] self-center">8%</p>
                             </div>
@@ -71,11 +71,11 @@ export default function Dashboard() {
                             <div className="flex gap-x-1">
                                 <img src="/down.svg" alt="Decrease" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                                 <p className="text-[#EB4335] text-[8px] sm:text-[10px] md:text-[12px] self-center">3%</p>
-                            </div>
-                        </div>
+                </div>
+              </div>
                         <p className="text-[#373737] text-xs md:text-sm self-center">Pending Approval</p>
-                    </div>
-                    <div className="self-center">
+            </div>
+            <div className="self-center">
                         <img src="/pending.svg" alt="Pending" className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" />
                     </div>
                 </div>
@@ -100,8 +100,8 @@ export default function Dashboard() {
                                 </div>
                             ))}
                         </div>
-                    </div>
-                </div>
+            </div>
+          </div>
                 
                 {/* Loan Status Distribution */}
                 <div className="bg-white rounded-[10px] shadow-md p-3 sm:p-4">
@@ -131,8 +131,8 @@ export default function Dashboard() {
                                 </div>
                                 <p className="text-[10px] sm:text-xs mt-0.5 line-clamp-2">John Doe from Association X has requested new loan of ₦500,000.</p>
                                 <p className="text-[8px] sm:text-[10px] text-gray-500 mt-0.5">2 hours ago</p>
-                            </div>
-                        </div>
+                </div>
+              </div>
                         
                         <div className="flex items-start gap-2">
                             <div className="bg-green-100 rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center text-green-500 flex-shrink-0">
@@ -142,11 +142,11 @@ export default function Dashboard() {
                                 <div className="flex justify-between items-center flex-wrap gap-1">
                                     <span className="font-medium text-xs sm:text-sm">Loan Repayment</span>
                                     <span className="text-[8px] sm:text-[10px] bg-green-100 text-green-800 py-0.5 px-1 rounded-full">Completed</span>
-                                </div>
+            </div>
                                 <p className="text-[10px] sm:text-xs mt-0.5 line-clamp-2">Jane Smith has repaid ₦20,000 for her loan.</p>
                                 <p className="text-[8px] sm:text-[10px] text-gray-500 mt-0.5">5 hours ago</p>
-                            </div>
-                        </div>
+            </div>
+          </div>
 
                         <div className="flex items-start gap-2">
                             <div className="bg-purple-100 rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center text-purple-500 flex-shrink-0">
@@ -174,7 +174,7 @@ export default function Dashboard() {
                                 <p className="text-[10px] sm:text-xs mt-0.5 line-clamp-2">You approved a loan request of ₦20,000 for Mary Johnson.</p>
                                 <p className="text-[8px] sm:text-[10px] text-gray-500 mt-0.5">2 day ago</p>
                             </div>
-                        </div>
+        </div>
 
                         <div className="flex items-start gap-2">
                             <div className="bg-red-100 rounded-full h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center text-red-500 flex-shrink-0">
@@ -215,6 +215,6 @@ export default function Dashboard() {
                     ))}
                 </div>
             </div>
-        </div>
+      </div>
     );
 }
