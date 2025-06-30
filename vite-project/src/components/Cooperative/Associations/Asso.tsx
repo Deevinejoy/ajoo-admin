@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface Association {
-  id: number;
+  id: string;
   name: string;
   members: number;
   loans: number;
@@ -11,25 +11,182 @@ interface Association {
   defaultRate: string;
 }
 
+interface ApiAssociation {
+  id?: string | number;
+  associationId?: string | number;
+  name?: string;
+  associationName?: string;
+  members?: number;
+  totalMembers?: number;
+  loans?: number;
+  activeLoans?: number;
+  created?: string;
+  createdAt?: string;
+  dateCreated?: string;
+  status?: string;
+  defaultRate?: string;
+  interestRate?: string;
+}
+
+interface CreateAssociationForm {
+  name: string;
+  leaderName: string;
+  leaderPhoneNumber: string;
+  category: string;
+  monthlySavings: string;
+  minimumLoanAmount: string;
+  maximumLoanAmount: string;
+  loanDuration: string;
+  interestRate: string;
+  foundedDate: string;
+}
+
 export default function Asso() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
-  
-  // Mock data for associations
-  const associations: Association[] = [
-    { id: 1, name: 'Association X', members: 1200, loans: 64, created: '2022-01-15', status: 'active', defaultRate: '3%' },
-    { id: 2, name: 'Association X', members: 1200, loans: 64, created: '2022-01-15', status: 'active', defaultRate: '3%' },
-    { id: 3, name: 'Association X', members: 1200, loans: 64, created: '2022-01-15', status: 'active', defaultRate: '3%' },
-    { id: 4, name: 'Association X', members: 1200, loans: 64, created: '2022-01-15', status: 'active', defaultRate: '3%' },
-    { id: 5, name: 'Association X', members: 1200, loans: 64, created: '2022-01-15', status: 'active', defaultRate: '3%' },
-  ];
+  const [associations, setAssociations] = useState<Association[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState<CreateAssociationForm>({
+    name: '',
+    leaderName: '',
+    leaderPhoneNumber: '',
+    category: 'Large',
+    monthlySavings: '',
+    minimumLoanAmount: '',
+    maximumLoanAmount: '',
+    loanDuration: '',
+    interestRate: '',
+    foundedDate: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  useEffect(() => {
+    const fetchAssociations = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('https://ajo.nickyai.online/api/v1/cooperative/associations/overview', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch associations');
+        }
+        
+        const result = await response.json();
+        const data = result.data || result;
+        
+        // Transform the API data to match our interface
+        const transformedAssociations = Array.isArray(data) ? data.map((item: ApiAssociation) => ({
+          id: String(item.id || item.associationId || ''),
+          name: item.name || item.associationName || '',
+          members: item.members || item.totalMembers || 0,
+          loans: item.loans || item.activeLoans || 0,
+          created: item.created || item.createdAt || item.dateCreated || '',
+          status: item.status || 'active',
+          defaultRate: item.defaultRate || item.interestRate || '0%',
+        })) : [];
+        
+        setAssociations(transformedAssociations);
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Error fetching associations';
+        setError(errorMessage);
+        console.error('Error fetching associations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssociations();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const requestBody = {
+        name: formData.name,
+        leaderName: formData.leaderName,
+        leaderPhoneNumber: formData.leaderPhoneNumber,
+        category: formData.category,
+        monthlySavings: parseFloat(formData.monthlySavings) || 0,
+        minimumLoanAmount: parseFloat(formData.minimumLoanAmount) || 0,
+        maximumLoanAmount: parseFloat(formData.maximumLoanAmount) || 0,
+        loanDuration: parseInt(formData.loanDuration) || 0,
+        interestRate: parseFloat(formData.interestRate) || 0,
+        foundedDate: formData.foundedDate,
+      };
+
+      const response = await fetch('https://ajo.nickyai.online/api/v1/cooperative/associations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create association');
+      }
+
+      // Close modal and refresh associations list
+      setShowModal(false);
+      setFormData({
+        name: '',
+        leaderName: '',
+        leaderPhoneNumber: '',
+        category: 'Large',
+        monthlySavings: '',
+        minimumLoanAmount: '',
+        maximumLoanAmount: '',
+        loanDuration: '',
+        interestRate: '',
+        foundedDate: '',
+      });
+      
+      // Refresh the associations list
+      window.location.reload();
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error creating association';
+      setSubmitError(errorMessage);
+      console.error('Error creating association:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
   
   // Handler to navigate to association details
-  const handleViewAssociation = (id: number) => {
+  const handleViewAssociation = (id: string) => {
     navigate(`/associations/${id}`);
   };
+
+  // Filter associations based on search term
+  const filteredAssociations = associations.filter(association =>
+    association.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   
   return (
     <div className="p-3 md:p-8 bg-[#F5F7FA]">
@@ -67,6 +224,22 @@ export default function Asso() {
       </div>
       
       <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="text-gray-500">Loading associations...</div>
+          </div>
+        ) : error ? (
+          <div className="p-8 text-center">
+            <div className="text-red-500">{error}</div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md"
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <>
         <table className="min-w-full divide-y divide-gray-200">
           <thead>
             <tr className="text-left text-gray-500">
@@ -80,7 +253,14 @@ export default function Asso() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {associations.map(association => (
+                {filteredAssociations.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-2 md:px-6 py-8 text-center text-gray-500">
+                      {searchTerm ? 'No associations found matching your search.' : 'No associations available.'}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredAssociations.map(association => (
               <tr key={association.id}>
                 <td className="px-2 md:px-6 py-2 md:py-4 text-xs md:text-sm">{association.name}</td>
                 <td className="px-2 md:px-6 py-2 md:py-4 text-xs md:text-sm">{association.members}</td>
@@ -102,10 +282,12 @@ export default function Asso() {
                   </button>
                 </td>
               </tr>
-            ))}
+                  ))
+                )}
           </tbody>
         </table>
         
+            {filteredAssociations.length > 0 && (
         <div className="flex flex-col md:flex-row items-center justify-between p-3 md:p-4 text-xs md:text-sm">
           <span className="text-gray-600 mb-2 md:mb-0">Previous page</span>
           <div className="flex items-center gap-1 md:gap-2">
@@ -123,6 +305,9 @@ export default function Asso() {
           </div>
           <span className="text-gray-600 mt-2 md:mt-0">Next page</span>
         </div>
+            )}
+          </>
+        )}
       </div>
       
       {/* Add New Association Modal */}
@@ -133,7 +318,13 @@ export default function Asso() {
               <h2 className="text-lg md:text-xl font-semibold mb-1">Add New Association</h2>
               <p className="text-gray-600 text-xs md:text-sm mb-4 md:mb-6">Create a new association under the cooperative. Fill in all required details below.</p>
               
-              <form>
+              {submitError && (
+                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">
+                  {submitError}
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit}>
                 {/* Association Name */}
                 <div className="mb-3 md:mb-4">
                   <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Association Name</label>
@@ -142,7 +333,41 @@ export default function Asso() {
                     name="name"
                     placeholder="Enter association name"
                     className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
                   />
+                </div>
+                
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-3 md:mb-4">
+                  {/* Leader Name */}
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Leader Name</label>
+                    <input
+                      type="text"
+                      name="leaderName"
+                      placeholder="Enter leader name"
+                      className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
+                      value={formData.leaderName}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  
+                  {/* Leader Phone Number */}
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Leader Phone Number</label>
+                    <input
+                      type="tel"
+                      name="leaderPhoneNumber"
+                      placeholder="Enter phone number"
+                      className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
+                      value={formData.leaderPhoneNumber}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
                 </div>
                 
                 {/* Two Column Layout */}
@@ -153,51 +378,27 @@ export default function Asso() {
                     <select
                       name="category"
                       className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md bg-white text-xs md:text-sm"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      required
                     >
-                      <option value="Class C (Large)">Class C (Large)</option>
-                      <option value="Class B (Medium)">Class B (Medium)</option>
-                      <option value="Class A (Small)">Class A (Small)</option>
+                      <option value="Large">Large</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Small">Small</option>
                     </select>
                   </div>
                   
-                  {/* Number of Members */}
+                  {/* Founded Date */}
                   <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Number of Members</label>
+                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Founded Date</label>
                     <input
-                      type="text"
-                      name="members"
-                      placeholder="1,000,000"
+                      type="date"
+                      name="foundedDate"
                       className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
+                      value={formData.foundedDate}
+                      onChange={handleInputChange}
+                      required
                     />
-                  </div>
-                </div>
-                
-                {/* Association Address */}
-                <div className="mb-3 md:mb-4">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Association Address</label>
-                  <input
-                    type="text"
-                    name="address"
-                    placeholder="Enter physical address"
-                    className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
-                  />
-                </div>
-                
-                {/* Date Established */}
-                <div className="mb-3 md:mb-4">
-                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Date Established</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="established"
-                      placeholder="March 26th,2025"
-                      className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md pr-10 text-xs md:text-sm"
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <svg className="w-4 h-4 md:w-5 md:h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"></path>
-                      </svg>
-                    </div>
                   </div>
                 </div>
                 
@@ -206,24 +407,28 @@ export default function Asso() {
                   {/* Monthly Savings */}
                   <div>
                     <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Monthly Savings(₦)</label>
-                    <select
+                    <input
+                      type="number"
                       name="monthlySavings"
-                      className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md bg-white text-xs md:text-sm"
-                    >
-                      <option value="Class C (Large)">Class C (Large)</option>
-                      <option value="Class B (Medium)">Class B (Medium)</option>
-                      <option value="Class A (Small)">Class A (Small)</option>
-                    </select>
+                      placeholder="100000"
+                      className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
+                      value={formData.monthlySavings}
+                      onChange={handleInputChange}
+                      required
+                    />
                   </div>
                   
                   {/* Loan Duration */}
                   <div>
                     <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Loan Duration(months)</label>
                     <input
-                      type="text"
+                      type="number"
                       name="loanDuration"
-                      placeholder="1,000,000"
+                      placeholder="10"
                       className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
+                      value={formData.loanDuration}
+                      onChange={handleInputChange}
+                      required
                     />
                   </div>
                 </div>
@@ -234,9 +439,13 @@ export default function Asso() {
                   <div>
                     <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Minimum Loan Amount(₦)</label>
                     <input
-                      type="text"
-                      name="minLoanAmount"
+                      type="number"
+                      name="minimumLoanAmount"
+                      placeholder="20000"
                       className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
+                      value={formData.minimumLoanAmount}
+                      onChange={handleInputChange}
+                      required
                     />
                   </div>
                   
@@ -244,36 +453,30 @@ export default function Asso() {
                   <div>
                     <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Maximum Loan Amount(₦)</label>
                     <input
-                      type="text"
-                      name="maxLoanAmount"
+                      type="number"
+                      name="maximumLoanAmount"
+                      placeholder="200000"
                       className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
+                      value={formData.maximumLoanAmount}
+                      onChange={handleInputChange}
+                      required
                     />
                   </div>
                 </div>
                 
-                {/* Two Column Layout */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
                   {/* Interest Rate */}
-                  <div>
+                <div className="mb-4 md:mb-6">
                     <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Interest Rate(%)</label>
                     <input
-                      type="text"
+                    type="number"
                       name="interestRate"
+                    placeholder="4.2"
+                    step="0.1"
                       className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md text-xs md:text-sm"
-                    />
-                  </div>
-                  
-                  {/* Interest Application */}
-                  <div>
-                    <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Interest Application</label>
-                    <select
-                      name="interestApplication"
-                      className="w-full p-2 md:p-2.5 border border-gray-300 rounded-md bg-white text-xs md:text-sm"
-                    >
-                      <option value="Reducing Balance">Reducing Balance</option>
-                      <option value="Flat Rate">Flat Rate</option>
-                    </select>
-                  </div>
+                    value={formData.interestRate}
+                    onChange={handleInputChange}
+                    required
+                  />
                 </div>
                 
                 {/* Buttons */}
@@ -282,14 +485,16 @@ export default function Asso() {
                     type="button"
                     className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 text-xs md:text-sm w-full md:w-auto order-2 md:order-1"
                     onClick={() => setShowModal(false)}
+                    disabled={submitting}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#1E293B] text-white rounded-md text-xs md:text-sm w-full md:w-auto order-1 md:order-2"
+                    className="px-4 py-2 bg-[#1E293B] text-white rounded-md text-xs md:text-sm w-full md:w-auto order-1 md:order-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={submitting}
                   >
-                    Submit Association
+                    {submitting ? 'Creating...' : 'Submit Association'}
                   </button>
                 </div>
               </form>

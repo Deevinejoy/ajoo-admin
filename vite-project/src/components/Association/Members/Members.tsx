@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AddMemberModal from './AddMemberModal';
 import { useNavigate } from 'react-router-dom';
 
@@ -50,9 +50,51 @@ const AssMembers: React.FC = () => {
     const [activeTab, setActiveTab] = useState('Financial Activity');
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [members, setMembers] = useState<AllMembersRow[]>([]);
+    const [totalMembers, setTotalMembers] = useState<number>(0);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     const tabs = ['All Members', 'Loan Request', 'Financial Activity', 'Loan Performance'];
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        fetch('https://ajo.nickyai.online/api/v1/admin/all-member', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+            .then(res => res.json())
+            .then(data => {
+                type ApiMember = {
+                    id: string;
+                    fullName?: string;
+                    name?: string;
+                    memberId?: string;
+                    dateJoined?: string;
+                    createdAt?: string;
+                    activeLoans?: number;
+                    totalBorrowed?: number;
+                    status?: string;
+                };
+                const apiMembers = (data.data?.members || []) as ApiMember[];
+                const rows = apiMembers.map((m): AllMembersRow => ({
+                    type: 'all_members',
+                    member: m.fullName || m.name || '',
+                    memberId: m.memberId || m.id || '',
+                    dateJoined: m.dateJoined || m.createdAt || '',
+                    activeLoans: m.activeLoans?.toString() || '0',
+                    totalBorrowed: m.totalBorrowed ? `₦${m.totalBorrowed}` : '₦0',
+                    status: m.status || 'Good',
+                }));
+                setMembers(rows);
+                setTotalMembers(data.data?.totalCount || rows.length);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
 
     const handleTabChange = (tab: string) => {
         setActiveTab(tab);
@@ -113,15 +155,11 @@ const AssMembers: React.FC = () => {
                     status: 'New'
                 }));
             default:
-                return Array(6).fill(null).map(() => ({
-                    type: 'all_members',
-                    member: 'Member 1',
-                    memberId: 'MOD234',
-                    dateJoined: 'Jan 10,2023',
-                    activeLoans: '1',
-                    totalBorrowed: '₦1,000,000',
-                    status: 'Good'
-                }));
+                // Filter by search query
+                if (searchQuery) {
+                    return members.filter(m => m.member.toLowerCase().includes(searchQuery.toLowerCase()));
+                }
+                return members;
         }
     };
 
@@ -244,7 +282,7 @@ const AssMembers: React.FC = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-[#373737] text-sm md:text-base">Total Members</h3>
-                            <p className="text-xl md:text-3xl font-semibold">247</p>
+                            <p className="text-xl md:text-3xl font-semibold">{loading ? '...' : totalMembers}</p>
                         </div>
                         <div className="self-center">
                             <img src="/briefcase.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />

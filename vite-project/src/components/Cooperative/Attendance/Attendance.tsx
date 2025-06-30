@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface Association {
-  id: number;
+  id: string;
   name: string;
   members: number;
   loans: number;
@@ -14,19 +14,94 @@ interface Association {
 export default function Attendance() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [associations, setAssociations] = useState<Association[]>([]);
   
-  // Mock data for associations with unique names
-  const associations: Association[] = [
-    { id: 1, name: 'Association X', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-    { id: 2, name: 'Association Y', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-    { id: 3, name: 'Association Z', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-    { id: 4, name: 'Association A', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-    { id: 5, name: 'Association B', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-  ];
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    console.log('Fetching associations with token:', token);
+    
+    fetch('https://ajo.nickyai.online/api/v1/cooperative/associations/attendance/view', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+      .then(res => {
+        console.log('Associations list response status:', res.status);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Associations API Response:', data);
+        console.log('Data type:', typeof data);
+        console.log('Data keys:', Object.keys(data));
+        
+        type ApiAssociation = {
+          id?: string;
+          associationId?: string;
+          _id?: string;
+          name?: string;
+          associationName?: string;
+          membersCount?: number;
+          loansCount?: number;
+          dateCreated?: string;
+          status?: string;
+          averageAttendance?: string;
+        };
+        const apiAssociations = (data.data || []) as ApiAssociation[];
+        console.log('Raw associations from API:', apiAssociations);
+        console.log('Number of associations:', apiAssociations.length);
+        
+        if (apiAssociations.length > 0) {
+          console.log('First association structure:', apiAssociations[0]);
+          console.log('First association keys:', Object.keys(apiAssociations[0]));
+        }
+        
+        const mapped = apiAssociations.map((a: ApiAssociation, idx: number) => {
+          // Try to find the correct ID field
+          const actualId = a.id || a.associationId || a._id;
+          console.log(`Association ${idx} - Raw ID fields:`, {
+            id: a.id,
+            associationId: a.associationId,
+            _id: a._id,
+            actualId: actualId
+          });
+          
+          const mappedAssociation = {
+            id: actualId || `fallback-${idx + 1}`,
+            name: a.name || a.associationName || '',
+            members: a.membersCount || 0,
+            loans: a.loansCount || 0,
+            created: a.dateCreated || '',
+            status: a.status || 'inactive',
+            avgAttendance: a.averageAttendance || '',
+          };
+          console.log(`Mapping association ${idx}:`, a, '->', mappedAssociation);
+          return mappedAssociation;
+        });
+        console.log('Final mapped associations:', mapped);
+        setAssociations(mapped);
+      })
+      .catch(error => {
+        console.error('Error fetching associations:', error);
+      });
+  }, []);
   
   // Handler to navigate to association details with the specific ID
-  const handleViewAssociation = (id: number) => {
-    navigate(`/attendance/${id}`);
+  const handleViewAssociation = (id: string) => {
+    console.log('Attempting to view association with ID:', id);
+    // Check if this is a valid database ID (not a fallback index)
+    const association = associations.find(a => a.id === id);
+    if (association && association.name) {
+      console.log('Navigating to association:', association.name, 'with ID:', id);
+      navigate(`/attendance/${id}`);
+    } else {
+      console.error('Invalid association ID:', id);
+      alert('Unable to view association details. Please try again.');
+    }
   };
 
   // Filter associations based on search term

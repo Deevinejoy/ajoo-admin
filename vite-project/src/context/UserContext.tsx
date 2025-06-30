@@ -1,36 +1,36 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type UserRole = 'admin' | 'association' | 'member';
+interface User {
+  id: string;
+  email: string;
+  role: 'MAJORCOOPERATIVE' | 'ASSOCIATE' | 'MAJORASSOCIATE' | 'COOPERATIVE';
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+}
 
 interface UserContextType {
-  role: UserRole | null;
-  setRole: (role: UserRole) => void;
-  isAuthenticated: boolean;
-  login: (role: UserRole) => void;
+  user: User | null;
+  login: (userData: User) => void;
   logout: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [role, setRole] = useState<UserRole | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
-  const login = (newRole: UserRole) => {
-    setRole(newRole);
-    setIsAuthenticated(true);
-    // You might want to store this in localStorage or a more persistent storage
-    localStorage.setItem('userRole', newRole);
+  const login = (userData: User) => {
+    setUser(userData);
   };
 
   const logout = () => {
-    setRole(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('userRole');
+    setUser(null);
+    localStorage.removeItem('token');
   };
 
   return (
-    <UserContext.Provider value={{ role, setRole, isAuthenticated, login, logout }}>
+    <UserContext.Provider value={{ user, login, logout }}>
       {children}
     </UserContext.Provider>
   );

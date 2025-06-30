@@ -1,15 +1,44 @@
+import React, { useEffect, useState } from 'react';
 import Linechart from '../Linechart';
 import Piechart from '../Piechart';
 
+interface LoanMetrics {
+    totalMembers: number;
+    activeLoans: number;
+    pendingLoans: number;
+}
+
 export default function AssDashboard() {
+    const [metrics, setMetrics] = useState<LoanMetrics | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // TODO: Replace with actual logic to get the ID from auth
+        const associationId = 'f32b9e81-e353-4a2f-a23a-f7d5d7642f46';
+        const token = localStorage.getItem('token');
+        fetch(`https://ajo.nickyai.online/api/v1/admin/loans/metrics?associationId=${associationId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+            .then(res => res.json())
+            .then(data => {
+                setMetrics(data.data);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, []);
+
+    if (loading) return <div>Loading...</div>;
+    if (!metrics) return <div>No data found.</div>;
+
     const pieChartData = [
-        { name: 'Active Loans', value: 65 },
-        { name: 'Completed', value: 30 },
-        { name: 'Overdue', value: 15 },
-    
-      ];
-    
-    
+        { name: 'Active Loans', value: metrics.activeLoans },
+        { name: 'Pending Loans', value: metrics.pendingLoans },
+    ];
+
     return (
         <div className="m-1 sm:m-2 md:m-4 lg:m-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4">
@@ -18,7 +47,7 @@ export default function AssDashboard() {
             <div className="self-center">
               <p className="text-[#373737] text-xs sm:text-sm md:text-base">Total Members</p>
               <div className="flex gap-x-[10px]">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">15</h2>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{metrics.totalMembers}</h2>
                 <div className="flex gap-x-1">
                   <img src="/up.svg" alt="pic" width={14} height={14} />
                   <p className="text-[#0F8B42] text-[10px] sm:text-[12px] self-center">15%</p>
@@ -32,9 +61,9 @@ export default function AssDashboard() {
 
           <div className="bg-white rounded-[10px] shadow-md flex justify-between p-3 sm:p-4 md:p-6">
             <div className="self-center">
-              <p className="text-[#373737] text-xs sm:text-sm md:text-base">Total Loans</p>
+              <p className="text-[#373737] text-xs sm:text-sm md:text-base">Active Loans</p>
               <div className="flex gap-x-[10px]">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">68</h2>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{metrics.activeLoans}</h2>
                 <div className="flex gap-x-1">
                   <img src="/up.svg" alt="pic" width={14} height={14} />
                   <p className="text-[#0F8B42] text-[10px] sm:text-[12px] self-center">8%</p>
@@ -48,9 +77,9 @@ export default function AssDashboard() {
 
           <div className="bg-white rounded-[10px] shadow-md flex justify-between p-3 sm:p-4 md:p-6">
             <div className="self-center">
-              <p className="text-[#373737] text-xs sm:text-sm md:text-base">Attendance</p>
+              <p className="text-[#373737] text-xs sm:text-sm md:text-base">Pending Loans</p>
               <div className="flex gap-x-[10px]">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">68</h2>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{metrics.pendingLoans}</h2>
                 <div className="flex gap-x-1">
                   <img src="/up.svg" alt="pic" width={14} height={14} />
                   <p className="text-[#0F8B42] text-[10px] sm:text-[12px] self-center">8%</p>

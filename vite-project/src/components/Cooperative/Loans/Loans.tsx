@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddLoanModal from './AddLoanModal';
 
@@ -15,16 +15,50 @@ interface Loan {
 const Loans: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddLoanOpen, setIsAddLoanOpen] = useState(false);
+  const [loans, setLoans] = useState<Loan[]>([]);
   const navigate = useNavigate();
 
-  // Mock data for loans
-  const loans: Loan[] = [
-    { id: '1', member: 'John Doe', association: 'Association X', amount: '₦20,000', date: '2022-01-15', dueDate: '2022-04-25', status: 'approved' },
-    { id: '2', member: 'John Doe', association: 'Association X', amount: '₦20,000', date: '2022-01-15', dueDate: '2022-04-25', status: 'completed' },
-    { id: '3', member: 'John Doe', association: 'Association X', amount: '₦20,000', date: '2022-01-15', dueDate: '2022-04-25', status: 'pending' },
-    { id: '4', member: 'John Doe', association: 'Association X', amount: '₦20,000', date: '2022-01-15', dueDate: '---', status: 'rejected' },
-    { id: '5', member: 'John Doe', association: 'Association X', amount: '₦20,000', date: '2022-01-15', dueDate: '2022-04-25', status: 'pending' },
-  ];
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('https://ajo.nickyai.online/api/v1/cooperative/loans/view', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        type ApiLoan = {
+          id?: string;
+          memberName?: string;
+          member?: string;
+          associationName?: string;
+          association?: string;
+          amount?: string | number;
+          date?: string;
+          createdAt?: string;
+          dueDate?: string;
+          status?: string;
+        };
+        const apiLoans = (data.data?.loans || data.loans || []) as ApiLoan[];
+        const mapped = apiLoans.map((l: ApiLoan) => ({
+          id: l.id || '',
+          member: l.memberName || l.member || '',
+          association: l.associationName || l.association || '',
+          amount: l.amount ? `₦${l.amount}` : '',
+          date: l.date || l.createdAt || '',
+          dueDate: l.dueDate || '',
+          status: l.status || '',
+        }));
+        setLoans(mapped);
+      });
+  }, []);
+
+  const filteredLoans = loans.filter(loan =>
+    loan.member.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    loan.association.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleViewLoan = (loanId: string) => {
     navigate(`/loans/${loanId}`);
@@ -102,7 +136,7 @@ const Loans: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {loans.map((loan) => (
+            {filteredLoans.map((loan) => (
               <tr key={loan.id}>
                 <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.id}</td>
                 <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.member}</td>

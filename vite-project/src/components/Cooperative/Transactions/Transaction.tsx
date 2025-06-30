@@ -1,13 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const transactions = [
-  { id: 1, date: '2022-01-15', type: 'Repayment', recipient: 'John Doe', amount: '₦20,000', status: 'completed' },
-  { id: 2, date: '2022-01-15', type: 'Repayment', recipient: 'John Doe', amount: '₦20,000', status: 'completed' },
-  { id: 3, date: '2022-01-15', type: 'Entrance Fee', recipient: 'Cooperative', amount: '₦20,000', status: 'pending' },
-  { id: 4, date: '2022-01-15', type: 'Disbursement', recipient: 'John Doe', amount: '₦20,000', status: 'completed' },
-  { id: 5, date: '2022-01-15', type: 'Repayment', recipient: 'John Doe', amount: '₦20,000', status: 'completed' },
-];
 
 const statusStyle = (status: string) => {
   switch (status) {
@@ -20,9 +12,113 @@ const statusStyle = (status: string) => {
   }
 };
 
+type TransactionType = {
+  id: string | number;
+  date: string;
+  type: string;
+  recipient: string;
+  amount: string;
+  status: string;
+};
+
 const Transaction: React.FC = () => {
   const [search, setSearch] = useState('');
+  const [transactions, setTransactions] = useState<TransactionType[]>([]);
+  const [pagination, setPagination] = useState<{ total: number; page: number; limit: number; totalPages: number }>({ total: 0, page: 1, limit: 10, totalPages: 0 });
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({
+    date: '',
+    type: '',
+    recipient: '',
+    amount: '',
+    status: 'pending',
+  });
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const fetchTransactions = () => {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    fetch('https://ajo.nickyai.online/api/v1/cooperative/transactions/view', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        type ApiTransaction = {
+          id: string | number;
+          date?: string;
+          createdAt?: string;
+          type?: string;
+          recipient?: string;
+          amount?: string | number;
+          status?: string;
+        };
+        const apiTransactions = (data.transactions || []) as ApiTransaction[];
+        const mapped = apiTransactions.map((t): TransactionType => ({
+          id: t.id,
+          date: t.date || t.createdAt || '',
+          type: t.type || '',
+          recipient: t.recipient || '',
+          amount: t.amount ? `₦${t.amount}` : '',
+          status: t.status || '',
+        }));
+        setTransactions(mapped);
+        setPagination(data.pagination || { total: 0, page: 1, limit: 10, totalPages: 0 });
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdding(true);
+    setAddError(null);
+    const token = localStorage.getItem('token');
+    try {
+      const response = await fetch('https://ajo.nickyai.online/api/v1/cooperative/transaction', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          ...addForm,
+          amount: Number(addForm.amount),
+        }),
+      });
+      const result = await response.json();
+      console.log('Add transaction response:', result);
+      if (!response.ok || result.status === 'error') {
+        setAddError(result.message || 'Failed to add transaction.');
+        setAdding(false);
+        return;
+      }
+      setShowAddModal(false);
+      setAddForm({ date: '', type: '', recipient: '', amount: '', status: 'pending' });
+      fetchTransactions();
+    } catch {
+      setAddError('Network or server error.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const filteredTransactions = transactions.filter(t =>
+    t.id?.toString().toLowerCase().includes(search.toLowerCase()) ||
+    t.type?.toLowerCase().includes(search.toLowerCase()) ||
+    t.recipient?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="p-4 md:p-6">
@@ -31,10 +127,33 @@ const Transaction: React.FC = () => {
           <h1 className="text-xl md:text-2xl font-medium">Transactions</h1>
           <p className="text-sm md:text-base text-[#666666]">View and manage all financial transactions for association members</p>
         </div>
-        <button className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center md:justify-start gap-x-2 font-medium w-full md:w-auto mt-2 md:mt-0 text-sm md:text-base">
+        <button className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center md:justify-start gap-x-2 font-medium w-full md:w-auto mt-2 md:mt-0 text-sm md:text-base" onClick={() => setShowAddModal(true)}>
           + New Transaction
         </button>
       </div>
+      {/* Add Transaction Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4">Add Transaction</h2>
+            <form onSubmit={handleAddTransaction} className="space-y-3">
+              {addError && <div className="text-red-500 text-sm mb-2">{addError}</div>}
+              <input type="date" className="w-full border p-2 rounded" required value={addForm.date} onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))} />
+              <input type="text" className="w-full border p-2 rounded" placeholder="Type" required value={addForm.type} onChange={e => setAddForm(f => ({ ...f, type: e.target.value }))} />
+              <input type="text" className="w-full border p-2 rounded" placeholder="Recipient" required value={addForm.recipient} onChange={e => setAddForm(f => ({ ...f, recipient: e.target.value }))} />
+              <input type="number" className="w-full border p-2 rounded" placeholder="Amount" required value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} />
+              <select className="w-full border p-2 rounded" value={addForm.status} onChange={e => setAddForm(f => ({ ...f, status: e.target.value }))}>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+              <div className="flex gap-2 mt-2">
+                <button type="button" className="bg-gray-200 px-4 py-2 rounded" onClick={() => setShowAddModal(false)} disabled={adding}>Cancel</button>
+                <button type="submit" className="bg-[#3161FF] text-white px-4 py-2 rounded" disabled={adding}>{adding ? 'Adding...' : 'Add Transaction'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 mb-5 md:mb-7 mt-2 md:mt-4">
         <div className="relative flex-grow w-full">
           <img src="/search.png" alt="pic" width={18} height={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"/>
@@ -66,7 +185,7 @@ const Transaction: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((t) => (
+              {(loading ? [] : filteredTransactions).map((t) => (
                 <tr key={t.id} className="border-b border-gray-200">
                   <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{t.id}</td>
                   <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{t.date}</td>
@@ -90,15 +209,15 @@ const Transaction: React.FC = () => {
             </tbody>
           </table>
         </div>
-        
         {/* Pagination */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-2 md:gap-0 p-2 md:p-4 mt-4">
           <span className="text-gray-600 text-xs md:text-sm order-2 md:order-1">Previous page</span>
           <div className="flex items-center gap-1 md:gap-2 order-1 md:order-2">
-            {[1, 2, 3, '...', 20].map((page, index) => (
+            {Array.from({ length: pagination.totalPages || 1 }, (_, i) => i + 1).map((page) => (
               <button
-                key={index}
-                className={`px-2 md:px-3 py-1 rounded text-xs md:text-sm ${page === 1 ? 'bg-[#3161FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                key={page}
+                className={`px-2 md:px-3 py-1 rounded text-xs md:text-sm ${page === pagination.page ? 'bg-[#3161FF] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                // onClick handler for page change can be added here
               >
                 {page}
               </button>

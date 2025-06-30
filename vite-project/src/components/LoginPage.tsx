@@ -1,15 +1,76 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useUser();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Skip authentication for now
-    navigate('/dashboard');
+    setError('');
+    setLoading(true);
+
+    try {
+      const requestBody = {
+        phoneNumber: phoneNumber,
+        password: password
+      };
+      
+      console.log('Sending login request with:', requestBody);
+      
+      const response = await fetch('https://ajo.nickyai.online/api/v1/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjNmODBmZWU4LWNlZjUtNDI0Ny1iZTVmLWZkMGEwZDFjZDZjMCIsImlhdCI6MTc1MDI0Mjg0NCwiZXhwIjoxNzUwMjQ2NDQ0fQ.Cy8OGaXvA5nM7nX-hyRgmOsOdYgaYrUVYLUcMA7_Mg'
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      console.log('Login API Response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      // Store the token
+      localStorage.setItem('token', data.data.token);
+      
+      // Map admin to user and login
+      const admin = data.data.admin;
+      const user = {
+        id: admin.id,
+        email: admin.email,
+        role: admin.adminType, // This will be 'MAJORCOOPERATIVE', 'ASSOCIATE', etc.
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        phoneNumber: admin.phoneNumber,
+      };
+      login(user);
+      
+      // Redirect based on role
+      if (user.role === 'MAJORCOOPERATIVE') {
+        navigate('/dashboard');
+      } else if (user.role === 'MAJORASSOCIATE') {
+        navigate('/association/dashboard');
+      } else {
+        navigate('/login');
+      }
+    } catch (err) {
+      console.error('Login Error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during login');
+      // Clear any existing token on failed login
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -33,14 +94,23 @@ const LoginPage: React.FC = () => {
         <h2 className="text-2xl font-semibold text-[#E5B93E] mb-2">Welcome Back</h2>
         <p className="text-white text-sm mb-6">Sign in to access your dashboard</p>
 
+        {error && (
+          <div className="w-full mb-4 p-3 bg-red-900/50 border border-red-500 text-red-200 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleLogin} className="w-full">
           <div className="mb-4">
             <input
-              type="text"
+              type="tel"
               placeholder="Phone Number"
               className="w-full bg-transparent border border-gray-600 text-white px-4 py-3 rounded focus:outline-none focus:border-[#E5B93E]"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
+              required
+              pattern="[0-9]{11,}"
+              title="Please enter a valid phone number (minimum 11 digits)"
             />
           </div>
           <div className="mb-6">
@@ -50,13 +120,16 @@ const LoginPage: React.FC = () => {
               className="w-full bg-transparent border border-gray-600 text-white px-4 py-3 rounded focus:outline-none focus:border-[#E5B93E]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={5}
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-[#E5B93E] text-[#07193A] py-3 rounded font-medium hover:bg-[#d1a736]"
+            disabled={loading}
+            className="w-full bg-[#E5B93E] text-[#07193A] py-3 rounded font-medium hover:bg-[#d1a736] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Log in
+            {loading ? 'Logging in...' : 'Log in'}
           </button>
         </form>
 
@@ -72,15 +145,6 @@ const LoginPage: React.FC = () => {
         </p>
       </div>
 
-      
-{/* <div className="mt-6">
-        {/* <button 
-          className="text-[#E5B93E] text-sm hover:underline"
-          onClick={() => navigate('/home')}
-        >
-          Back to homepage
-        </button>
-      </div> */} 
       <div className="mt-6 text-white text-xs">
         © Ajoo.me. All Rights Reserved
       </div>

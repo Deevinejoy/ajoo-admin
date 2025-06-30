@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const notifications = [
-  { title: 'Missed Repayment', desc: 'John Doe missed loan repayment.', time: '2 hours ago' },
-  { title: 'Loan Approval', desc: 'New loan for John doe approved', time: '5 hours ago' },
-  { title: 'New Member', desc: 'John Doe just joined the association.', time: '1 day ago' },
-  { title: 'New Member', desc: 'John Doe just joined the association.', time: '1 day ago' },
-  { title: 'New Loan Request', desc: 'John Doe from Association X has requested new loan of ₦500,000.', time: '2 hours ago' },
-];
+interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  timeAgo: string;
+  type: string;
+  status?: string;
+}
 
-const activities = [
-  { title: 'New Loan Request', desc: 'John Doe has requested a new loan of ₦5,000,000.', time: '2 hours ago', status: 'pending' },
-  { title: 'Loan Repayment', desc: 'John Doe has repaid ₦5,000,000 for his loan.', time: '5 hours ago', status: 'pending' },
-  { title: 'New Member', desc: 'John Doe just joined the association.', time: '1 day ago', status: 'pending' },
-];
+interface Activity {
+  id: string;
+  title: string;
+  description: string;
+  timeAgo: string;
+  status: string;
+}
 
 const frequencyOptions = ['Immediately', 'Hourly', 'Daily', 'Weekly'];
 
@@ -23,6 +26,88 @@ const Notifications: React.FC = () => {
   const [pushNotif, setPushNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(true);
   const [frequency, setFrequency] = useState('Immediately');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('https://ajo.nickyai.online/api/v1/cooperative/dashboard/notifications', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch notifications');
+        }
+        
+        const result = await response.json();
+        const data = result.data || result;
+        
+        // Transform the API data to match our interfaces
+        if (data.notifications) {
+          const transformedNotifications = Array.isArray(data.notifications) ? data.notifications.map((item: {
+            id?: string;
+            title?: string;
+            type?: string;
+            description?: string;
+            message?: string;
+            desc?: string;
+            timeAgo?: string;
+            createdAt?: string;
+            time?: string;
+            status?: string;
+          }) => ({
+            id: item.id || '',
+            title: item.title || item.type || 'Notification',
+            description: item.description || item.message || item.desc || '',
+            timeAgo: item.timeAgo || item.createdAt || item.time || 'Just now',
+            type: item.type || 'general',
+            status: item.status || 'unread',
+          })) : [];
+          setNotifications(transformedNotifications);
+        }
+        
+        if (data.activities) {
+          const transformedActivities = Array.isArray(data.activities) ? data.activities.map((item: {
+            id?: string;
+            title?: string;
+            action?: string;
+            description?: string;
+            message?: string;
+            desc?: string;
+            timeAgo?: string;
+            createdAt?: string;
+            time?: string;
+            status?: string;
+          }) => ({
+            id: item.id || '',
+            title: item.title || item.action || 'Activity',
+            description: item.description || item.message || item.desc || '',
+            timeAgo: item.timeAgo || item.createdAt || item.time || 'Just now',
+            status: item.status || 'pending',
+          })) : [];
+          setActivities(transformedActivities);
+        }
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Error fetching notifications';
+        setError(errorMessage);
+        console.error('Error fetching notifications:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
 
   if (showManage) {
     return (
@@ -54,7 +139,7 @@ const Notifications: React.FC = () => {
           <div className="mb-4 flex flex-wrap md:flex-nowrap items-center justify-between border-b pb-4">
             <div className="w-full md:w-auto mb-2 md:mb-0">
               <div className="font-medium text-base md:text-lg">Push Notifications</div>
-              <div className="text-[#939393] text-xs md:text-sm">Receive notifications via email</div>
+              <div className="text-[#939393] text-xs md:text-sm">Receive notifications via push</div>
             </div>
             <button
               type="button"
@@ -70,7 +155,7 @@ const Notifications: React.FC = () => {
           <div className="mb-6 md:mb-8 flex flex-wrap md:flex-nowrap items-center justify-between border-b pb-4">
             <div className="w-full md:w-auto mb-2 md:mb-0">
               <div className="font-medium text-base md:text-lg">SMS Notifications</div>
-              <div className="text-[#939393] text-xs md:text-sm">Receive notifications via email</div>
+              <div className="text-[#939393] text-xs md:text-sm">Receive notifications via SMS</div>
             </div>
             <button
               type="button"
@@ -101,6 +186,30 @@ const Notifications: React.FC = () => {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="p-4 md:p-8">
+        <div className="text-center text-gray-500">Loading notifications...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 md:p-8">
+        <div className="text-center text-red-500">
+          {error}
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md block mx-auto"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-8">
       <div className="flex gap-2 mb-4 md:mb-6 overflow-x-auto">
@@ -125,49 +234,61 @@ const Notifications: React.FC = () => {
               <button className="text-[#3B82F6] font-medium" onClick={() => setShowManage(true)}>Manage</button>
             </div>
             <div className="overflow-y-auto max-h-[70vh] md:max-h-none">
-              {notifications.map((n, i) => (
-                <div key={i} className="py-3 md:py-4 border-b border-[#ECECEC]">
-                  <div className="font-medium text-base md:text-lg mb-1">{n.title}</div>
-                  <div className="text-[#373737] text-sm md:text-base mb-1">{n.desc}</div>
-                  <div className="text-[#939393] text-xs md:text-sm">{n.time}</div>
-                </div>
-              ))}
+              {notifications.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">No notifications available</div>
+              ) : (
+                notifications.map((n) => (
+                  <div key={n.id} className="py-3 md:py-4 border-b border-[#ECECEC]">
+                    <div className="font-medium text-base md:text-lg mb-1">{n.title}</div>
+                    <div className="text-[#373737] text-sm md:text-base mb-1">{n.description}</div>
+                    <div className="text-[#939393] text-xs md:text-sm">{n.timeAgo}</div>
+                  </div>
+                ))
+              )}
             </div>
-            <div className="flex justify-center items-center gap-1 md:gap-2 mt-6 md:mt-8 text-xs md:text-sm text-[#939393] overflow-x-auto">
-              <span className="whitespace-nowrap">Previous page</span>
-              <span className="font-semibold text-black">1</span>
-              <span>2</span>
-              <span>3</span>
-              <span>...</span>
-              <span>20</span>
-              <span className="whitespace-nowrap">Next page</span>
-            </div>
+            {notifications.length > 0 && (
+              <div className="flex justify-center items-center gap-1 md:gap-2 mt-6 md:mt-8 text-xs md:text-sm text-[#939393] overflow-x-auto">
+                <span className="whitespace-nowrap">Previous page</span>
+                <span className="font-semibold text-black">1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>...</span>
+                <span>20</span>
+                <span className="whitespace-nowrap">Next page</span>
+              </div>
+            )}
           </>
         )}
         {tab === 'Activity Log' && (
           <>
             <h2 className="text-xl md:text-2xl font-medium mb-4 md:mb-6">Recent Activity</h2>
             <div className="overflow-y-auto max-h-[70vh] md:max-h-none">
-              {activities.map((a, i) => (
-                <div key={i} className="py-3 md:py-4 border-b border-[#ECECEC] flex flex-wrap md:flex-nowrap items-start md:items-center justify-between">
-                  <div className="w-full md:w-auto mb-2 md:mb-0">
-                    <div className="font-medium text-base md:text-lg mb-1">{a.title}</div>
-                    <div className="text-[#373737] text-sm md:text-base mb-1">{a.desc}</div>
-                    <div className="text-[#939393] text-xs md:text-sm">{a.time}</div>
+              {activities.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">No recent activity</div>
+              ) : (
+                activities.map((a) => (
+                  <div key={a.id} className="py-3 md:py-4 border-b border-[#ECECEC] flex flex-wrap md:flex-nowrap items-start md:items-center justify-between">
+                    <div className="w-full md:w-auto mb-2 md:mb-0">
+                      <div className="font-medium text-base md:text-lg mb-1">{a.title}</div>
+                      <div className="text-[#373737] text-sm md:text-base mb-1">{a.description}</div>
+                      <div className="text-[#939393] text-xs md:text-sm">{a.timeAgo}</div>
+                    </div>
+                    <span className="bg-[#FFF9DB] text-[#EAB308] px-3 md:px-4 py-1 rounded-full text-xs md:text-sm font-medium">{a.status}</span>
                   </div>
-                  <span className="bg-[#FFF9DB] text-[#EAB308] px-3 md:px-4 py-1 rounded-full text-xs md:text-sm font-medium">{a.status}</span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
-            <div className="flex justify-center items-center gap-1 md:gap-2 mt-6 md:mt-8 text-xs md:text-sm text-[#939393] overflow-x-auto">
-              <span className="whitespace-nowrap">Previous page</span>
-              <span className="font-semibold text-black">1</span>
-              <span>2</span>
-              <span>3</span>
-              <span>...</span>
-              <span>20</span>
-              <span className="whitespace-nowrap">Next page</span>
-            </div>
+            {activities.length > 0 && (
+              <div className="flex justify-center items-center gap-1 md:gap-2 mt-6 md:mt-8 text-xs md:text-sm text-[#939393] overflow-x-auto">
+                <span className="whitespace-nowrap">Previous page</span>
+                <span className="font-semibold text-black">1</span>
+                <span>2</span>
+                <span>3</span>
+                <span>...</span>
+                <span>20</span>
+                <span className="whitespace-nowrap">Next page</span>
+              </div>
+            )}
           </>
         )}
       </div>

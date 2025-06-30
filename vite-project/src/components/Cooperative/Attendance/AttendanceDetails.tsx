@@ -1,14 +1,6 @@
+import { ChevronLeft } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-// Mock data for associations with unique names
-const associationsData = [
-  { id: 1, name: 'Association X', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-  { id: 2, name: 'Association Y', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-  { id: 3, name: 'Association Z', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-  { id: 4, name: 'Association A', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-  { id: 5, name: 'Association B', members: 1200, loans: 64, created: '2022-01-15', status: 'active', avgAttendance: '82%' },
-];
 
 const meetingData = [
   { id: 1, date: 'Jan 10,2023', name: 'Monthly General Meeting', type: 'General', attendees: '42/56', percent: '78%' },
@@ -30,16 +22,86 @@ const AttendanceDetails: React.FC = () => {
   const [tab, setTab] = useState<'Meeting Tracker' | 'Attendance Reports'>('Meeting Tracker');
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [association, setAssociation] = useState<typeof associationsData[0] | null>(null);
+  type AssociationDetails = {
+    id?: string;
+    associationName?: string;
+    memberCount?: number;
+    totalMeetings?: number;
+    dateCreated?: string;
+    status?: string;
+    averageAttendance?: string;
+  };
+  const [association, setAssociation] = useState<AssociationDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    // Find the association by ID
     if (id) {
-      const associationId = parseInt(id, 10);
-      const foundAssociation = associationsData.find(assoc => assoc.id === associationId);
-      setAssociation(foundAssociation || null);
+      console.log('Association ID from URL:', id);
+      console.log('Association ID type:', typeof id);
+      const token = localStorage.getItem('token');
+      console.log('Token:', token);
+      
+      setLoading(true);
+      setError(null);
+      
+      fetch(`loc/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+        .then(res => {
+          console.log('Response status:', res.status);
+          console.log('Response headers:', res.headers);
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          console.log('API Response:', data);
+          // Use data.data or data as the association object
+          const associationData = (data.data || data) as AssociationDetails;
+          setAssociation(associationData);
+          setLoading(false);
+        })
+        .catch(error => {
+          console.error('Error fetching association:', error);
+          setError(error.message);
+          setLoading(false);
+        });
     }
   }, [id]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="p-4 md:p-6 pt-1 md:pt-2">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading association details...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-4 md:p-6 pt-1 md:pt-2">
+        <h1 className="text-xl md:text-2xl font-medium text-red-600">Error Loading Association</h1>
+        <p className="text-gray-600 mt-2">Unable to load association details. Please try again.</p>
+        <p className="text-sm text-gray-500 mt-1">Error: {error}</p>
+        <button 
+          className="mt-4 bg-[#3161FF] text-white px-4 py-2 rounded-lg"
+          onClick={() => navigate('/attendance')}
+        >
+          Back to Associations
+        </button>
+      </div>
+    );
+  }
 
   // If association not found, show a message or redirect
   if (!association) {
@@ -59,10 +121,22 @@ const AttendanceDetails: React.FC = () => {
   return (
     <div className="p-4 md:p-6 pt-2 md:pt-3 bg-[#F5F7FA]">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-5 gap-3 md:gap-0">
+    
+      
+      
+        <div className='flex '>
+        <button  
+          className="text-[#373737] flex items-center gap-x-2 text-2xl font-medium"
+          onClick={() => navigate('/attendance')}
+        >
+         <ChevronLeft className="w-5 h-5" />
+        </button>
         <div>
-          <h1 className="text-xl md:text-2xl font-medium">{association.name} - Attendance</h1>
+          <h1 className="text-xl md:text-2xl font-medium">{association.associationName} - Attendance</h1>
           <p className="text-[#666666] text-sm md:text-base">Manage association attendance records</p>
         </div>
+        </div>
+       
         <button className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center md:justify-start gap-x-2 font-medium w-full md:w-auto">
           + Add Meeting
         </button>
@@ -73,7 +147,7 @@ const AttendanceDetails: React.FC = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-[#373737] text-sm md:text-base">Total Meetings</h3>
-                    <p className="text-xl md:text-2xl font-semibold">24</p>
+                    <p className="text-xl md:text-2xl font-semibold">{association.totalMeetings || 0}</p>
                 </div>
                 <div className="self-center">
                     <img src="/briefcase.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
@@ -84,7 +158,7 @@ const AttendanceDetails: React.FC = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-[#373737] text-sm md:text-base">Avg. Attendance</h3>
-                    <p className="text-xl md:text-2xl font-semibold">{association.avgAttendance}</p>
+                    <p className="text-xl md:text-2xl font-semibold">{association.averageAttendance || '0%'}</p>
                 </div>
                 <div className="self-center">
                     <img src="/people.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
