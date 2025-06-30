@@ -1,17 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LoanApplicationReviews, { LoanApplication } from './LoanApplicationReviews';
 import AddLoanModal from './AddLoanModal';
-
-interface Loan {
-    member: string;
-    loanId: string;
-    amount: string;
-    issuedDate: string;
-    dueDate: string;
-    status: 'Current' | 'Overdue' | 'Defaulted';
-}
 
 type TabType = 'Members Loan Breakdown' | 'Loan Application Reviews';
 
@@ -19,18 +10,37 @@ const AssLoans: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('Members Loan Breakdown');
     const [searchQuery, setSearchQuery] = useState('');
     const [isAddLoanOpen, setIsAddLoanOpen] = useState(false);
+    const [loans, setLoans] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
     const tabs: TabType[] = ['Members Loan Breakdown', 'Loan Application Reviews'];
 
-    const loans: Loan[] = [
-        { member: 'Member 1', loanId: 'LN-5342', amount: '₦600,000', issuedDate: 'Jan 10,2023', dueDate: 'Jun 10,2025', status: 'Current' },
-        { member: 'Member 1', loanId: 'LN-5342', amount: '₦600,000', issuedDate: 'Jan 10,2023', dueDate: 'Jun 10,2025', status: 'Overdue' },
-        { member: 'Member 1', loanId: 'LN-5342', amount: '₦600,000', issuedDate: 'Jan 10,2023', dueDate: 'Jun 10,2025', status: 'Defaulted' },
-        { member: 'Member 1', loanId: 'LN-5342', amount: '₦600,000', issuedDate: 'Jan 10,2023', dueDate: 'Jun 10,2025', status: 'Current' },
-        { member: 'Member 1', loanId: 'LN-5342', amount: '₦600,000', issuedDate: 'Jan 10,2023', dueDate: 'Jun 10,2025', status: 'Current' },
-        { member: 'Member 1', loanId: 'LN-5342', amount: '₦600,000', issuedDate: 'Jan 10,2023', dueDate: 'Jun 10,2025', status: 'Current' },
-    ];
+    useEffect(() => {
+        const fetchLoans = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('https://ajo.nickyai.online/api/v1/admin/loans', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                });
+                if (!response.ok) throw new Error('Failed to fetch loans');
+                const data = await response.json();
+                setLoans(data.data.loans || []);
+            } catch (err: any) {
+                setError(err.message || 'An error occurred');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLoans();
+    }, []);
 
     // Mock data for Loan Application Reviews
     const pendingApplications: LoanApplication[] = [
@@ -50,8 +60,8 @@ const AssLoans: React.FC = () => {
         { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', reviewedOn: 'jun 10,2025', status: 'Rejected' },
     ];
 
-    const handleViewLoan = (loanId: string) => {
-        navigate(`/association/loans/${loanId}`);
+    const handleViewLoan = (id: string) => {
+        navigate(`/association/loans/${id}`);
     };
 
     const handleViewApplication = (applicationId: string) => {
@@ -115,17 +125,18 @@ const AssLoans: React.FC = () => {
             </div>
 
             {activeTab === 'Loan Application Reviews' ? (
-                <LoanApplicationReviews
-                    pending={pendingApplications}
-                    recent={recentApplications}
-                    onView={handleViewApplication}
-                />
+                <LoanApplicationReviews onView={handleViewApplication} />
             ) : (
                 <div className="bg-white rounded-lg shadow overflow-x-auto">
                     <div className="p-3 md:p-4 border-b border-gray-200">
                         <h2 className="text-base md:text-lg font-medium">Active Loans</h2>
                     </div>
                     <div className="overflow-x-auto">
+                        {loading ? (
+                            <div className="p-4 text-center text-gray-500">Loading loans...</div>
+                        ) : error ? (
+                            <div className="p-4 text-center text-red-500">{error}</div>
+                        ) : (
                         <table className="w-full min-w-[700px]">
                             <thead>
                                 <tr className="border-b border-gray-200">
@@ -139,64 +150,75 @@ const AssLoans: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {loans.map((loan, index) => (
-                                    <tr key={index} className="border-b border-gray-200">
-                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{loan.member}</td>
+                                {loans.length === 0 ? (
+                                    <tr><td colSpan={7} className="text-center py-6 text-gray-400">No loans found.</td></tr>
+                                ) : (
+                                loans.filter(loan => {
+                                    const memberName = loan.member?.fullName || '';
+                                    const loanId = loan.loanId || '';
+                                    return (
+                                        memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                        loanId.toLowerCase().includes(searchQuery.toLowerCase())
+                                    );
+                                }).map((loan, index) => (
+                                    <tr key={loan.id || index} className="border-b border-gray-200">
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{loan.member?.fullName || '-'}</td>
                                         <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{loan.loanId}</td>
-                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{loan.amount}</td>
-                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{loan.issuedDate}</td>
-                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{loan.dueDate}</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">₦{Number(loan.amount).toLocaleString()}</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{loan.issueDate ? new Date(loan.issueDate).toLocaleDateString() : '-'}</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{loan.dueDate ? new Date(loan.dueDate).toLocaleDateString() : '-'}</td>
                                         <td className="py-3 md:py-4 px-2 md:px-6">
-                                            <span className={`px-2 md:px-3 py-1 rounded-full text-xs ${(() => {
-                                                switch (loan.status) {
-                                                    case 'Current':
-                                                        return 'bg-[#B9FBC0] text-[#0F8B42]';
-                                                    case 'Overdue':
-                                                        return 'bg-[#FFF4CC] text-[#806B00]';
-                                                    case 'Defaulted':
-                                                        return 'bg-[#FFE5E5] text-[#D30000]';
-                                                    default:
-                                                        return 'bg-[#B9FBC0] text-[#0F8B42]';
-                                                }
-                                            })()}`}>
-                                                {loan.status === 'Overdue' ? 'Overdue (13 days)' : loan.status}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 md:py-4 px-2 md:px-6">
-                                            <button 
-                                                onClick={() => handleViewLoan(loan.loanId)}
-                                                className="flex items-center gap-1 md:gap-x-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
-                                            >
-                                                <img src="/view.svg" alt="view" width={16} height={16} className="md:w-[18px] md:h-[18px]" />
-                                                <span className="font-medium text-xs md:text-sm">View</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    {/* Pagination */}
-                    <div className="flex flex-col md:flex-row items-center justify-between p-3 md:p-4 text-xs md:text-sm">
-                        <button className="text-gray-600 hover:text-gray-900 mb-2 md:mb-0">Previous page</button>
-                        <div className="flex items-center gap-1 md:gap-2">
-                            {[1, 2, 3, '...', 20].map((page, index) => (
-                                <button
-                                    key={index}
-                                    className={`px-2 md:px-3 py-1 rounded ${
-                                        page === 1 ? 'bg-[#3161FF] text-white' : 'text-gray-600 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                        </div>
-                        <button className="text-gray-600 hover:text-gray-900 mt-2 md:mt-0">Next page</button>
-                    </div>
+                                    <span className={`px-2 md:px-3 py-1 rounded-full text-xs ${(() => {
+                                        switch (loan.repaymentStatus) {
+                                            case 'pending':
+                                                return 'bg-[#FFF4CC] text-[#806B00]';
+                                            case 'overdue':
+                                                return 'bg-[#FFE5E5] text-[#D30000]';
+                                            case 'current':
+                                                return 'bg-[#B9FBC0] text-[#0F8B42]';
+                                            default:
+                                                return 'bg-[#B9FBC0] text-[#0F8B42]';
+                                        }
+                                    })()}`}>
+                                        {loan.repaymentStatus ? loan.repaymentStatus.charAt(0).toUpperCase() + loan.repaymentStatus.slice(1) : '-'}
+                                    </span>
+                                </td>
+                                <td className="py-3 md:py-4 px-2 md:px-6">
+                                    <button 
+                                        onClick={() => handleViewLoan(loan.id)}
+                                        className="flex items-center gap-1 md:gap-x-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
+                                    >
+                                        <img src="/view.svg" alt="view" width={16} height={16} className="md:w-[18px] md:h-[18px]" />
+                                        <span className="font-medium text-xs md:text-sm">View</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        )))}
+                    </tbody>
+                </table>
+                )}
+            </div>
+            {/* Pagination */}
+            <div className="flex flex-col md:flex-row items-center justify-between p-3 md:p-4 text-xs md:text-sm">
+                <button className="text-gray-600 hover:text-gray-900 mb-2 md:mb-0">Previous page</button>
+                <div className="flex items-center gap-1 md:gap-2">
+                    {[1, 2, 3, '...', 20].map((page, index) => (
+                        <button
+                            key={index}
+                            className={`px-2 md:px-3 py-1 rounded ${
+                                page === 1 ? 'bg-[#3161FF] text-white' : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                        >
+                            {page}
+                        </button>
+                    ))}
                 </div>
-            )}
+                <button className="text-gray-600 hover:text-gray-900 mt-2 md:mt-0">Next page</button>
+            </div>
         </div>
-    );
+    )}
+</div>
+);
 };
 
 export default AssLoans; 

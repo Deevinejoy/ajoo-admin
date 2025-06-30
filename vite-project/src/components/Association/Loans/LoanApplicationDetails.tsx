@@ -1,8 +1,48 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const AssLoanApplicationDetails: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const [application, setApplication] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchApplication = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('No authentication token found. Please log in.');
+        const response = await fetch(`https://ajo.nickyai.online/api/v1/admin/get-applied-loan/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        });
+        if (!response.ok) throw new Error('Failed to fetch loan application details');
+        const data = await response.json();
+        setApplication(data.data);
+      } catch (err: any) {
+        setError(err.message || 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchApplication();
+  }, [id]);
+
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  if (!application) return <div className="p-6">No application details found.</div>;
+
+  // Helper for safely accessing nested data
+  const member = application.member || {};
+  const risk = application.riskAssessment || {};
+  const timeline = application.timeline || {};
+
   return (
     <div className="p-3 md:p-6 bg-[#F5F7FA] min-h-screen">
       {/* New Header Card */}
@@ -19,30 +59,30 @@ const AssLoanApplicationDetails: React.FC = () => {
       <div className="bg-white rounded-xl shadow p-3 md:p-6 mb-4 md:mb-6">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2 md:gap-3">
-            <span className="font-semibold text-base md:text-lg text-[#22223B]">Loan Application #LN-5342</span>
-            <span className="bg-[#FFF4CC] text-[#806B00] px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium">Pending review</span>
+            <span className="font-semibold text-base md:text-lg text-[#22223B]">Loan Application #{application.applicationId}</span>
+            <span className="bg-[#FFF4CC] text-[#806B00] px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium">{application.status || 'Pending review'}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
-          <div className="text-[#22223B] text-sm md:text-base font-medium">Member 1</div>
-          <span className="text-[#BDBDBD] text-xs md:text-sm">ID: 1234</span>
+          <div className="text-[#22223B] text-sm md:text-base font-medium">{member.fullName || '-'}</div>
+          <span className="text-[#BDBDBD] text-xs md:text-sm">ID: {member.id || '-'}</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
           <div>
             <div className="text-[#BDBDBD] text-xs md:text-sm">Loan Amount</div>
-            <div className="font-semibold text-sm md:text-base">N500,000.00</div>
+            <div className="font-semibold text-sm md:text-base">₦{Number(application.amount).toLocaleString()}</div>
           </div>
           <div>
             <div className="text-[#BDBDBD] text-xs md:text-sm">Duration</div>
-            <div className="font-semibold text-sm md:text-base">12 Months</div>
+            <div className="font-semibold text-sm md:text-base">{application.loanDuration || '-'} Months</div>
           </div>
           <div>
             <div className="text-[#BDBDBD] text-xs md:text-sm">Interest Rate</div>
-            <div className="font-semibold text-sm md:text-base">5%</div>
+            <div className="font-semibold text-sm md:text-base">{application.interestRate || '-'}%</div>
           </div>
           <div>
             <div className="text-[#BDBDBD] text-xs md:text-sm">Submission Date</div>
-            <div className="font-semibold text-sm md:text-base">Apr 05, 2025</div>
+            <div className="font-semibold text-sm md:text-base">{timeline.submissionDate ? new Date(timeline.submissionDate).toLocaleDateString() : '-'}</div>
           </div>
         </div>
       </div>
@@ -54,27 +94,27 @@ const AssLoanApplicationDetails: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 md:gap-x-8">
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Full Name</div>
-              <div className="font-medium text-sm md:text-base">John Doe</div>
+              <div className="font-medium text-sm md:text-base">{member.fullName || '-'}</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Member ID</div>
-              <div className="font-medium text-sm md:text-base">1234</div>
+              <div className="font-medium text-sm md:text-base">{member.id || '-'}</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Email Address</div>
-              <div className="font-medium text-sm md:text-base">Johndoe@gmail.com</div>
+              <div className="font-medium text-sm md:text-base">{member.email || '-'}</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Phone number</div>
-              <div className="font-medium text-sm md:text-base">+234 8452426928</div>
+              <div className="font-medium text-sm md:text-base">{member.phoneNumber || '-'}</div>
             </div>
             <div className="col-span-1">
               <div className="text-[#BDBDBD] text-xs md:text-sm">Home Address</div>
-              <div className="font-medium text-sm md:text-base">123 Mainstreet, anytown, Lagos</div>
+              <div className="font-medium text-sm md:text-base">{member.address || '-'}</div>
             </div>
             <div className="col-span-1">
               <div className="text-[#BDBDBD] text-xs md:text-sm">Membership Date</div>
-              <div className="font-medium text-sm md:text-base">Jan 15, 2023</div>
+              <div className="font-medium text-sm md:text-base">{member.dateJoined ? new Date(member.dateJoined).toLocaleDateString() : '-'}</div>
             </div>
           </div>
         </div>
@@ -84,19 +124,19 @@ const AssLoanApplicationDetails: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 md:gap-x-8">
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Member Since</div>
-              <div className="font-medium text-sm md:text-base">Jan 15,2023</div>
+              <div className="font-medium text-sm md:text-base">{member.dateJoined ? new Date(member.dateJoined).toLocaleDateString() : '-'}</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Payment History</div>
-              <div className="font-medium text-sm md:text-base">None</div>
+              <div className="font-medium text-sm md:text-base">-</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Membership Status</div>
-              <div className="font-medium text-sm md:text-base">Active</div>
+              <div className="font-medium text-sm md:text-base">{member.membershipStatus ? 'Active' : 'Inactive'}</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Previous loans</div>
-              <div className="font-medium text-sm md:text-base">None</div>
+              <div className="font-medium text-sm md:text-base">-</div>
             </div>
           </div>
         </div>
@@ -106,35 +146,35 @@ const AssLoanApplicationDetails: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 md:gap-x-8">
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Loan Amount</div>
-              <div className="font-medium text-sm md:text-base">N500,000.00</div>
+              <div className="font-medium text-sm md:text-base">₦{Number(application.amount).toLocaleString()}</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Loan Purpose</div>
-              <div className="font-medium text-sm md:text-base">Home Renovation</div>
+              <div className="font-medium text-sm md:text-base">{application.purpose || '-'}</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Loan Duration</div>
-              <div className="font-medium text-sm md:text-base">12 Months</div>
+              <div className="font-medium text-sm md:text-base">{application.loanDuration || '-'} Months</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Interest Rate</div>
-              <div className="font-medium text-sm md:text-base">5%</div>
+              <div className="font-medium text-sm md:text-base">{application.interestRate || '-'}%</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Monthly Payment</div>
-              <div className="font-medium text-sm md:text-base">N55,000.00</div>
+              <div className="font-medium text-sm md:text-base">-</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Total Repayment</div>
-              <div className="font-medium text-sm md:text-base">N550,000.00</div>
+              <div className="font-medium text-sm md:text-base">-</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Preferred Payment Method</div>
-              <div className="font-medium text-sm md:text-base">Direct Debit</div>
+              <div className="font-medium text-sm md:text-base">-</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Request Disbursement Date</div>
-              <div className="font-medium text-sm md:text-base">Apr 15,2025</div>
+              <div className="font-medium text-sm md:text-base">{timeline.expectedApprovalDate ? new Date(timeline.expectedApprovalDate).toLocaleDateString() : '-'}</div>
             </div>
           </div>
         </div>
@@ -144,19 +184,19 @@ const AssLoanApplicationDetails: React.FC = () => {
           <div className="grid grid-cols-1 gap-y-2">
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Debt to income ratio</div>
-              <div className="font-medium text-sm md:text-base">32% (good)</div>
+              <div className="font-medium text-sm md:text-base">-</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Loan to income ratio</div>
-              <div className="font-medium text-sm md:text-base">9.9% (low risk)</div>
+              <div className="font-medium text-sm md:text-base">-</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">Risk Score</div>
-              <div className="font-medium text-sm md:text-base">82/100 (low Risk)</div>
+              <div className="font-medium text-sm md:text-base">{risk.riskLevel || '-'}</div>
             </div>
             <div>
               <div className="text-[#BDBDBD] text-xs md:text-sm">System Recommendation</div>
-              <div className="font-medium text-sm md:text-base">Approval Recommended</div>
+              <div className="font-medium text-sm md:text-base">{risk.comments || '-'}</div>
             </div>
           </div>
         </div>

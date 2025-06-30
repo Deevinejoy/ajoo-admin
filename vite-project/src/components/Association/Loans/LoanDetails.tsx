@@ -1,28 +1,126 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
 
+interface Member {
+    id: string;
+    fullName: string;
+    dateOfBirth: string;
+    phoneNumber: string;
+    email: string;
+    address: string;
+    membershipStatus: boolean;
+    memberPhoto: string | null;
+    dateJoined: string;
+    updatedAt: string;
+}
+
+interface Transaction {
+    id: string;
+    date: string;
+    amount: string;
+    status: string;
+}
+
+interface LoanDetails {
+    id: string;
+    memberId: string;
+    associationId: string;
+    loanNumber: number;
+    loanId: string;
+    amount: string;
+    issueDate: string;
+    dueDate: string;
+    termMonths: number;
+    interestRate: string;
+    repaymentStatus: string;
+    status: string;
+    isClosed: boolean;
+    paymentSchedule: string;
+    purpose: string;
+    createdAt: string;
+    updatedAt: string;
+    member: Member;
+    transactions: Transaction[];
+}
+
 const AssLoanDetails: React.FC = () => {
-    const { loanId } = useParams();
+    const { id } = useParams();
     const navigate = useNavigate();
+    const [loan, setLoan] = useState<LoanDetails | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchLoan = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                if (!id) {
+                    throw new Error('No loan ID provided');
+                }
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No authentication token found. Please log in.');
+                }
+                const url = `https://ajo.nickyai.online/api/v1/admin/loan/${id}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                });
+                if (!response.ok) {
+                    let errorMsg = `Failed to fetch loan details (status: ${response.status})`;
+                    try {
+                        const errorBody = await response.text();
+                        errorMsg += `: ${errorBody}`;
+                    } catch {}
+                    throw new Error(errorMsg);
+                }
+                const data = await response.json();
+                if (isMounted) {
+                    setLoan(data.data);
+                }
+            } catch (err: any) {
+                if (isMounted) {
+                    setError(err.message || 'An error occurred');
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+        fetchLoan();
+        return () => {
+            isMounted = false;
+        };
+    }, [id]);
 
     const handleBack = () => {
-        navigate(-1)
+        navigate(-1);
     };
 
-    // Pie chart data
+    // Pie chart data (placeholder, you can compute from loan if needed)
     const data = [
-        { name: 'Principal', value: 25000 },
-        { name: 'Interest', value: 2500 },
+        { name: 'Principal', value: loan ? Number(loan.amount) : 0 },
+        { name: 'Interest', value: loan ? Number(loan.amount) * (Number(loan.interestRate) / 100) : 0 },
     ];
     const COLORS = ['#3161FF', '#FFB800'];
+
+    if (loading) return <div className="p-6">Loading...</div>;
+    if (error) return <div className="p-6 text-red-500">{error}</div>;
+    if (!loan) return <div className="p-6">No loan details found.</div>;
 
     return (
         <div className="p-3 md:p-6">
             {/* Header */}
             <div className="flex items-center justify-between gap-x-2 mb-4 md:mb-6">
-                <button 
+                <button
                     onClick={handleBack}
                     className="text-[#373737] flex items-center gap-x-2 text-lg md:text-2xl font-medium"
                 >
@@ -40,7 +138,7 @@ const AssLoanDetails: React.FC = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-[#373737] text-xs md:text-sm mb-1 md:mb-2">Total Amount</h3>
-                            <p className="text-xl md:text-2xl font-semibold">₦600,000</p>
+                            <p className="text-xl md:text-2xl font-semibold">₦{loan.amount}</p>
                         </div>
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-[#E5EBFF] rounded-full flex items-center justify-center">
                             <img src="/loans1.svg" alt="amount" className="w-5 h-5 md:w-6 md:h-6" />
@@ -52,7 +150,7 @@ const AssLoanDetails: React.FC = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-[#373737] text-xs md:text-sm mb-1 md:mb-2">Amount Paid</h3>
-                            <p className="text-xl md:text-2xl font-semibold">₦82,500</p>
+                            <p className="text-xl md:text-2xl font-semibold">₦0</p>
                         </div>
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-[#E5EBFF] rounded-full flex items-center justify-center">
                             <img src="/loans1.svg" alt="paid" className="w-5 h-5 md:w-6 md:h-6" />
@@ -64,7 +162,7 @@ const AssLoanDetails: React.FC = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-[#373737] text-xs md:text-sm mb-1 md:mb-2">Amount Due</h3>
-                            <p className="text-xl md:text-2xl font-semibold">₦517,500</p>
+                            <p className="text-xl md:text-2xl font-semibold">₦{loan.amount}</p>
                         </div>
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-[#E5EBFF] rounded-full flex items-center justify-center">
                             <img src="/loans1.svg" alt="due" className="w-5 h-5 md:w-6 md:h-6" />
@@ -83,12 +181,15 @@ const AssLoanDetails: React.FC = () => {
                             <div className="space-y-3 md:space-y-4">
                                 <h3 className="text-base md:text-lg font-semibold">Loan Information</h3>
                                 <div className="space-y-1 md:space-y-2 text-sm md:text-base">
-                                    <p><span className="font-medium">Loan ID:</span> {loanId}</p>
-                                    <p><span className="font-medium">Amount:</span> ₦600,000</p>
-                                    <p><span className="font-medium">Interest Rate:</span> 5% per annum</p>
-                                    <p><span className="font-medium">Term:</span> 24 months</p>
-                                    <p><span className="font-medium">Issue Date:</span> Jan 10, 2023</p>
-                                    <p><span className="font-medium">Due Date:</span> Jan 10, 2025</p>
+                                    <p><span className="font-medium">Loan ID:</span> {loan.loanId}</p>
+                                    <p><span className="font-medium">Amount:</span> ₦{loan.amount}</p>
+                                    <p><span className="font-medium">Interest Rate:</span> {loan.interestRate}%</p>
+                                    <p><span className="font-medium">Term:</span> {loan.termMonths} months</p>
+                                    <p><span className="font-medium">Issue Date:</span> {loan.issueDate}</p>
+                                    <p><span className="font-medium">Due Date:</span> {loan.dueDate}</p>
+                                    <p><span className="font-medium">Purpose:</span> {loan.purpose}</p>
+                                    <p><span className="font-medium">Repayment Status:</span> {loan.repaymentStatus}</p>
+                                    <p><span className="font-medium">Status:</span> {loan.status}</p>
                                 </div>
                             </div>
 
@@ -96,11 +197,11 @@ const AssLoanDetails: React.FC = () => {
                             <div className="space-y-3 md:space-y-4">
                                 <h3 className="text-base md:text-lg font-semibold">Borrower Information</h3>
                                 <div className="space-y-1 md:space-y-2 text-sm md:text-base">
-                                    <p><span className="font-medium">Member:</span> John Doe</p>
-                                    <p><span className="font-medium">Member ID:</span> MOD234</p>
-                                    <p><span className="font-medium">Phone:</span> +234 123 456 7890</p>
-                                    <p><span className="font-medium">Email:</span> john.doe@example.com</p>
-                                    <p><span className="font-medium">Credit Score:</span> 720</p>
+                                    <p><span className="font-medium">Member:</span> {loan.member?.fullName}</p>
+                                    <p><span className="font-medium">Member ID:</span> {loan.member?.id}</p>
+                                    <p><span className="font-medium">Phone:</span> {loan.member?.phoneNumber}</p>
+                                    <p><span className="font-medium">Email:</span> {loan.member?.email}</p>
+                                    <p><span className="font-medium">Address:</span> {loan.member?.address}</p>
                                 </div>
                             </div>
                         </div>
@@ -121,19 +222,18 @@ const AssLoanDetails: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {[1, 2, 3].map((_, index) => (
-                                        <tr key={index} className="border-b border-gray-200">
-                                            <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">Feb 10, 2024</td>
-                                            <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">₦27,500</td>
-                                            <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">₦25,000</td>
-                                            <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">₦2,500</td>
-                                            <td className="py-3 md:py-4 px-2 md:px-6">
-                                                <span className="px-2 md:px-3 py-1 rounded-full text-xs bg-[#B9FBC0] text-[#0F8B42]">
-                                                    Paid
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {/* No repayment schedule in API, so show a placeholder */}
+                                    <tr className="border-b border-gray-200">
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">-</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">-</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">-</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">-</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6">
+                                            <span className="px-2 md:px-3 py-1 rounded-full text-xs bg-gray-200 text-gray-500">
+                                                N/A
+                                            </span>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -162,8 +262,8 @@ const AssLoanDetails: React.FC = () => {
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
-                                    <Legend 
-                                        verticalAlign="bottom" 
+                                    <Legend
+                                        verticalAlign="bottom"
                                         height={36}
                                         iconType="circle"
                                     />
@@ -185,17 +285,16 @@ const AssLoanDetails: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {[1, 2, 3].map((_, index) => (
-                                        <tr key={index} className="border-b border-gray-200">
-                                            <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">Feb 10, 2024</td>
-                                            <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">₦27,500</td>
-                                            <td className="py-3 md:py-4 px-2 md:px-6">
-                                                <span className="px-2 md:px-3 py-1 rounded-full text-xs bg-[#B9FBC0] text-[#0F8B42]">
-                                                    Successful
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {/* No transactions in API, so show a placeholder */}
+                                    <tr className="border-b border-gray-200">
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">-</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">-</td>
+                                        <td className="py-3 md:py-4 px-2 md:px-6">
+                                            <span className="px-2 md:px-3 py-1 rounded-full text-xs bg-gray-200 text-gray-500">
+                                                N/A
+                                            </span>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -206,4 +305,4 @@ const AssLoanDetails: React.FC = () => {
     );
 };
 
-export default AssLoanDetails; 
+export default AssLoanDetails;

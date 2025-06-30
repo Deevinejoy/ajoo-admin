@@ -100,7 +100,7 @@ const App: React.FC = () => {
           <Route path="/association/transactions" element={<AssTransaction />} />
           <Route path="/association/transactions/:id" element={<AssTransactionDetails />} />
           <Route path="/association/loans" element={<AssLoans />} />
-          <Route path="/association/loans/:loanId" element={<AssLoanDetails />} />
+          <Route path="/association/loans/:id" element={<AssLoanDetails />} />
           <Route path="/association/loan-applications/:id" element={<AssLoanApplicationDetails />} />
           <Route path="/association/reports" element={<AssReports />} />
           <Route path="/association/settings" element={<AssSettings />} />
