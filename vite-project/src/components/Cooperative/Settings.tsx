@@ -1,4 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+interface CooperativeDetails {
+  id?: string;
+  name?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  registrationNumber?: string;
+  foundedDate?: string;
+}
 
 const TABS = [
   { label: 'Cooperative', icon: <img src="/building.svg" alt="cooperative" className="w-5 h-5" /> },
@@ -19,6 +29,71 @@ const loanSettings = [
 const Settings: React.FC = () => {
   const [tab, setTab] = useState('Cooperative');
   const [editingLoanIdx, setEditingLoanIdx] = useState<number | null>(null);
+  const [coopDetails, setCoopDetails] = useState<CooperativeDetails | null>(null);
+  const [coopLoading, setCoopLoading] = useState(true);
+  const [coopError, setCoopError] = useState<string | null>(null);
+  const [coopSaving, setCoopSaving] = useState(false);
+  const [coopSaveMsg, setCoopSaveMsg] = useState<string | null>(null);
+  const cooperativeId = localStorage.getItem('cooperativeId');
+
+  useEffect(() => {
+    if (tab === 'Cooperative' && cooperativeId) {
+      setCoopLoading(true);
+      setCoopError(null);
+      fetch(`https://ajo.nickyai.online/api/v1/cooperative/settings/info/${cooperativeId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+        .then(res => res.json())
+        .then(data => {
+          setCoopDetails(data.data || {});
+          setCoopLoading(false);
+        })
+        .catch(() => {
+          setCoopError('Failed to load cooperative details');
+          setCoopLoading(false);
+        });
+    }
+  }, [tab, cooperativeId]);
+
+  const handleCoopChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCoopDetails((prev) => prev ? { ...prev, [name]: value } : { [name]: value });
+  };
+
+  const handleCoopSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCoopSaving(true);
+    setCoopSaveMsg(null);
+    try {
+      const response = await fetch(`https://ajo.nickyai.online/api/v1/cooperative/settings/info/${cooperativeId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          name: coopDetails?.name,
+          address: coopDetails?.address,
+          email: coopDetails?.email,
+          phone: coopDetails?.phone,
+        })
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || 'Failed to update details');
+      }
+      setCoopSaveMsg('Changes saved successfully!');
+    } catch (err: any) {
+      setCoopSaveMsg(err.message || 'Failed to save changes');
+    } finally {
+      setCoopSaving(false);
+    }
+  };
 
   return (
     <div className="p-4 md:p-6">
@@ -40,41 +115,48 @@ const Settings: React.FC = () => {
       {/* Tab Content */}
       {tab === 'Cooperative' && (
         <div className="bg-white rounded-lg p-4 md:p-8">
-          <h2 className="text-lg md:text-xl font-semibold mb-1">Association Details</h2>
+          <h2 className="text-lg md:text-xl font-semibold mb-1">Cooperative Details</h2>
           <p className="text-[#939393] text-sm md:text-base mb-4 md:mb-6">Manage your cooperative information</p>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Association Name</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="Association Name" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Cooperative ID</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="CSC-12345" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Registration number</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="REG-9475824" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Founded Date</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="01-Jan-2020" readOnly />
-            </div>
-            <div className="col-span-1 md:col-span-2">
-              <label className="block text-sm md:text-base font-medium mb-1">Address</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="123 Cooperative Street, Financial District" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Email</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="info@communitysavings.coop" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Phone</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="+234 904 284 5939" readOnly />
-            </div>
-            <div className="col-span-1 md:col-span-2 mt-2 md:mt-4">
-              <button className="w-full md:w-auto bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg">Save Changes</button>
-            </div>
-          </form>
+          {coopLoading ? (
+            <div className="text-center text-gray-500 py-8">Loading...</div>
+          ) : coopError ? (
+            <div className="text-center text-red-500 py-8">{coopError}</div>
+          ) : coopDetails ? (
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6" onSubmit={handleCoopSave}>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Association Name</label>
+                <input name="name" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={coopDetails.name || ''} onChange={handleCoopChange} />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Cooperative ID</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value={coopDetails.id || ''} readOnly />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Registration number</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value={coopDetails.registrationNumber || ''} readOnly />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Founded Date</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value={coopDetails.foundedDate || ''} readOnly />
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm md:text-base font-medium mb-1">Address</label>
+                <input name="address" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={coopDetails.address || ''} onChange={handleCoopChange} />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Email</label>
+                <input name="email" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={coopDetails.email || ''} onChange={handleCoopChange} />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Phone</label>
+                <input name="phone" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={coopDetails.phone || ''} onChange={handleCoopChange} />
+              </div>
+              <div className="col-span-1 md:col-span-2 mt-2 md:mt-4">
+                <button type="submit" className="w-full md:w-auto bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg" disabled={coopSaving}>{coopSaving ? 'Saving...' : 'Save Changes'}</button>
+                {coopSaveMsg && <div className={`mt-2 text-sm ${coopSaveMsg.includes('success') ? 'text-green-600' : 'text-red-500'}`}>{coopSaveMsg}</div>}
+              </div>
+            </form>
+          ) : null}
         </div>
       )}
       {tab === 'Permission' && (

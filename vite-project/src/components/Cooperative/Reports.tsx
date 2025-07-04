@@ -4,9 +4,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 const pieColors = ['#111827', '#0F8B42', '#B68C2B', '#3161FF', '#FFB800'];
 type PieChartData = { name: string; value: number; color: string };
 type BarChartData = { name: string; value: number };
-type LoanDistributionApi = { name?: string; category?: string; value?: number; count?: number };
-type AttendanceTrendApi = { month?: string; label?: string; value?: number; attendance?: number };
-type TransactionVolumeApi = { month?: string; label?: string; value?: number; amount?: number };
 
 const Reports: React.FC = () => {
   const [loanDistribution, setLoanDistribution] = useState<PieChartData[]>([]);
@@ -28,29 +25,41 @@ const Reports: React.FC = () => {
             headers: { 'Authorization': `Bearer ${token}` }
           })
         ]);
-        const [loanDistData, attendanceData, transactionData] = await Promise.all([
+        const [loanDistDataRaw, attendanceDataRaw, transactionDataRaw] = await Promise.all([
           loanDistRes.json(),
           attendanceRes.json(),
           transactionRes.json()
         ]);
+        // Loan Distribution
+        const loanDistData = loanDistDataRaw.data;
         setLoanDistribution(
-          (loanDistData.data || []).map((item: LoanDistributionApi, idx: number): PieChartData => ({
-            name: item.name || item.category || `Type ${idx + 1}`,
-            value: item.value || item.count || 0,
-            color: pieColors[idx % pieColors.length]
-          }))
+          loanDistData && loanDistData.labels && loanDistData.values
+            ? loanDistData.labels.map((label: string, idx: number) => ({
+                name: label,
+                value: loanDistData.values[idx],
+                color: pieColors[idx % pieColors.length]
+              }))
+            : []
         );
-        setAttendanceTrend(
-          (attendanceData.data || []).map((item: AttendanceTrendApi): BarChartData => ({
-            name: item.month || item.label || '',
-            value: item.value || item.attendance || 0
-          }))
-        );
+        // Attendance Trend
+        const attendanceTrendData = attendanceDataRaw.data;
+        const attendanceTrend = attendanceTrendData.labels.map((label, idx) => ({
+          name: label,
+          value: attendanceTrendData.values[idx]
+        }));
+        setAttendanceTrend(attendanceTrend);
+        // Transaction Volume
+        const txData = transactionDataRaw.data;
         setTransactionVolume(
-          (transactionData.data || []).map((item: TransactionVolumeApi): BarChartData => ({
-            name: item.month || item.label || '',
-            value: item.value || item.amount || 0
-          }))
+          txData && txData.labels && txData.datasets
+            ? txData.labels.map((label: string, idx: number) => {
+                const entry: Record<string, number | string> = { name: label };
+                txData.datasets.forEach((ds: { label: string; values: number[] }) => {
+                  entry[ds.label] = ds.values[idx];
+                });
+                return entry;
+              })
+            : []
         );
       } catch {
         setLoanDistribution([]);
@@ -131,7 +140,9 @@ const Reports: React.FC = () => {
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#111827"/>
+                <Bar dataKey="Savings" fill="#111827" />
+                <Bar dataKey="Loans" fill="#3161FF" />
+                <Bar dataKey="Other" fill="#B68C2B" />
               </BarChart>
             </ResponsiveContainer>
           </div>

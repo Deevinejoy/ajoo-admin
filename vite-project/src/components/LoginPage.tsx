@@ -45,6 +45,9 @@ const LoginPage: React.FC = () => {
       
       // Map admin to user and login
       const admin = data.data.admin;
+      // Save associationId and cooperativeId to localStorage
+      localStorage.setItem('associationId', admin.associationId);
+      localStorage.setItem('cooperativeId', admin.cooperativeId);
       const user = {
         id: admin.id,
         email: admin.email,
@@ -52,6 +55,8 @@ const LoginPage: React.FC = () => {
         firstName: admin.firstName,
         lastName: admin.lastName,
         phoneNumber: admin.phoneNumber,
+        associationId: admin.associationId ?? null,
+        cooperativeId: admin.cooperativeId ?? null,
       };
       login(user);
       

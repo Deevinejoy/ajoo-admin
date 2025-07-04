@@ -2,11 +2,13 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
   id: string;
-  email: string;
+  email: string | null;
   role: 'MAJORCOOPERATIVE' | 'ASSOCIATE' | 'MAJORASSOCIATE' | 'COOPERATIVE';
   firstName: string;
   lastName: string;
   phoneNumber: string;
+  associationId: string | null;
+  cooperativeId: string | null;
 }
 
 interface UserContextType {

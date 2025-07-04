@@ -2,12 +2,14 @@ import { ChevronLeft } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const meetingData = [
-  { id: 1, date: 'Jan 10,2023', name: 'Monthly General Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 2, date: 'Jan 10,2023', name: 'Committee  Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 3, date: 'Jan 10,2023', name: 'Board Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 4, date: 'Jan 10,2023', name: 'Monthly General Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-];
+interface Meeting {
+  id: string | number;
+  meetingDate?: string;
+  meetingName?: string;
+  meetingType?: string;
+  attendees?: string;
+  attendanceRate?: string;
+}
 
 const attendanceData = [
   { id: 'MM3452', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
@@ -34,6 +36,9 @@ const AttendanceDetails: React.FC = () => {
   const [association, setAssociation] = useState<AssociationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [recentMeetings, setRecentMeetings] = useState<Meeting[]>([]);
+  const [recentMeetingsLoading, setRecentMeetingsLoading] = useState(true);
+  const [recentMeetingsError, setRecentMeetingsError] = useState<string | null>(null);
   
   useEffect(() => {
     if (id) {
@@ -45,7 +50,7 @@ const AttendanceDetails: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      fetch(`loc/${id}`, {
+      fetch(`https://ajo.nickyai.online/api/v1/cooperative/association/${id}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -71,6 +76,30 @@ const AttendanceDetails: React.FC = () => {
           console.error('Error fetching association:', error);
           setError(error.message);
           setLoading(false);
+        });
+      // Fetch recent meetings
+      setRecentMeetingsLoading(true);
+      setRecentMeetingsError(null);
+      fetch(`https://ajo.nickyai.online/api/v1/cooperative/association/${id}/recent-meetings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          setRecentMeetings(data.data || []);
+          setRecentMeetingsLoading(false);
+        })
+        .catch(error => {
+          setRecentMeetingsError(error.message);
+          setRecentMeetingsLoading(false);
         });
     }
   }, [id]);
@@ -221,6 +250,11 @@ const AttendanceDetails: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4 md:p-6">
           <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Recent Meetings</h2>
           <div className="overflow-x-auto">
+            {recentMeetingsLoading ? (
+              <div className="p-4 text-center text-gray-500">Loading recent meetings...</div>
+            ) : recentMeetingsError ? (
+              <div className="p-4 text-center text-red-500">{recentMeetingsError}</div>
+            ) : (
             <table className="w-full min-w-[700px]">
               <thead>
                 <tr className="border-b border-gray-200">
@@ -233,13 +267,13 @@ const AttendanceDetails: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {meetingData.map((m, i) => (
+                {recentMeetings.map((m, i) => (
                   <tr key={i} className="border-b border-gray-200">
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.date}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.name}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.type}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attendees}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.percent}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.meetingDate || '-'}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.name || m.meetingName || '-'}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.meetingType || '-'}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attendees || '-'}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.percent || m.attendanceRate || '-'}</td>
                     <td className="py-3 md:py-4 px-2 md:px-6 flex gap-2">
                       <button
                         className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm"
@@ -253,6 +287,7 @@ const AttendanceDetails: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
           {/* Footer Buttons */}
           <div className="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-6">

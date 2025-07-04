@@ -28,11 +28,14 @@ const Transaction: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
-    date: '',
-    type: '',
-    recipient: '',
+    memberId: '',
+    loanId: '',
+    transactionType: '',
     amount: '',
-    status: 'pending',
+    paymentMethod: '',
+    reference: '',
+    paymentCycle: '',
+    recipientAssociationId: '',
   });
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
@@ -85,7 +88,7 @@ const Transaction: React.FC = () => {
     setAddError(null);
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('https://ajo.nickyai.online/api/v1/cooperative/transaction', {
+      const response = await fetch('https://ajo.nickyai.online/api/v1/cooperation/transactions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -105,7 +108,16 @@ const Transaction: React.FC = () => {
         return;
       }
       setShowAddModal(false);
-      setAddForm({ date: '', type: '', recipient: '', amount: '', status: 'pending' });
+      setAddForm({
+        memberId: '',
+        loanId: '',
+        transactionType: '',
+        amount: '',
+        paymentMethod: '',
+        reference: '',
+        paymentCycle: '',
+        recipientAssociationId: '',
+      });
       fetchTransactions();
     } catch {
       setAddError('Network or server error.');
@@ -133,19 +145,19 @@ const Transaction: React.FC = () => {
       </div>
       {/* Add Transaction Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-30 backdrop-blur">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4">Add Transaction</h2>
             <form onSubmit={handleAddTransaction} className="space-y-3">
               {addError && <div className="text-red-500 text-sm mb-2">{addError}</div>}
-              <input type="date" className="w-full border p-2 rounded" required value={addForm.date} onChange={e => setAddForm(f => ({ ...f, date: e.target.value }))} />
-              <input type="text" className="w-full border p-2 rounded" placeholder="Type" required value={addForm.type} onChange={e => setAddForm(f => ({ ...f, type: e.target.value }))} />
-              <input type="text" className="w-full border p-2 rounded" placeholder="Recipient" required value={addForm.recipient} onChange={e => setAddForm(f => ({ ...f, recipient: e.target.value }))} />
+              <input type="text" className="w-full border p-2 rounded" placeholder="Member ID" required value={addForm.memberId} onChange={e => setAddForm(f => ({ ...f, memberId: e.target.value }))} />
+              <input type="text" className="w-full border p-2 rounded" placeholder="Loan ID" required value={addForm.loanId} onChange={e => setAddForm(f => ({ ...f, loanId: e.target.value }))} />
+              <input type="text" className="w-full border p-2 rounded" placeholder="Transaction Type" required value={addForm.transactionType} onChange={e => setAddForm(f => ({ ...f, transactionType: e.target.value }))} />
               <input type="number" className="w-full border p-2 rounded" placeholder="Amount" required value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} />
-              <select className="w-full border p-2 rounded" value={addForm.status} onChange={e => setAddForm(f => ({ ...f, status: e.target.value }))}>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-              </select>
+              <input type="text" className="w-full border p-2 rounded" placeholder="Payment Method" required value={addForm.paymentMethod} onChange={e => setAddForm(f => ({ ...f, paymentMethod: e.target.value }))} />
+              <input type="text" className="w-full border p-2 rounded" placeholder="Reference" required value={addForm.reference} onChange={e => setAddForm(f => ({ ...f, reference: e.target.value }))} />
+              <input type="text" className="w-full border p-2 rounded" placeholder="Payment Cycle" required value={addForm.paymentCycle} onChange={e => setAddForm(f => ({ ...f, paymentCycle: e.target.value }))} />
+              <input type="text" className="w-full border p-2 rounded" placeholder="Recipient Association ID" required value={addForm.recipientAssociationId} onChange={e => setAddForm(f => ({ ...f, recipientAssociationId: e.target.value }))} />
               <div className="flex gap-2 mt-2">
                 <button type="button" className="bg-gray-200 px-4 py-2 rounded" onClick={() => setShowAddModal(false)} disabled={adding}>Cancel</button>
                 <button type="submit" className="bg-[#3161FF] text-white px-4 py-2 rounded" disabled={adding}>{adding ? 'Adding...' : 'Add Transaction'}</button>

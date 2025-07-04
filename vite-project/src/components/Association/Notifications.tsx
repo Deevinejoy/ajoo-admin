@@ -1,28 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const notifications = [
-  { title: 'Missed Repayment', desc: 'John Doe missed loan repayment.', time: '2 hours ago' },
-  { title: 'Loan Approval', desc: 'New loan for John doe approved', time: '5 hours ago' },
-  { title: 'New Member', desc: 'John Doe just joined the association.', time: '1 day ago' },
-  { title: 'New Member', desc: 'John Doe just joined the association.', time: '1 day ago' },
-  { title: 'New Loan Request', desc: 'John Doe from Association X has requested new loan of ₦500,000.', time: '2 hours ago' },
-];
+function formatTimeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000); // in seconds
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)} min${Math.floor(diff / 60) === 1 ? '' : 's'} ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) === 1 ? '' : 's'} ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) === 1 ? '' : 's'} ago`;
+  return date.toLocaleString();
+}
 
-const activities = [
-  { title: 'New Loan Request', desc: 'John Doe has requested a new loan of ₦5,000,000.', time: '2 hours ago', status: 'pending' },
-  { title: 'Loan Repayment', desc: 'John Doe has repaid ₦5,000,000 for his loan.', time: '5 hours ago', status: 'pending' },
-  { title: 'New Member', desc: 'John Doe just joined the association.', time: '1 day ago', status: 'pending' },
-];
-
-const frequencyOptions = ['Immediately', 'Hourly', 'Daily', 'Weekly'];
-
-const Notifications: React.FC = () => {
+const AssNotifications: React.FC = () => {
   const [tab, setTab] = useState<'Notification' | 'Activity Log'>('Notification');
   const [showManage, setShowManage] = useState(false);
   const [emailNotif, setEmailNotif] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(true);
   const [frequency, setFrequency] = useState('Immediately');
+  const [notificationLogs, setNotificationLogs] = useState<any[]>([]);
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifError, setNotifError] = useState('');
+  const [activityLoading, setActivityLoading] = useState(false);
+  const [activityError, setActivityError] = useState('');
+
+  // Fetch notifications when Notification tab is selected
+  useEffect(() => {
+    if (tab === 'Notification') {
+      setNotifLoading(true);
+      setNotifError('');
+      fetch('https://ajo.nickyai.online/api/v1/admin/activity-logs/action/SETTINGS_UPDATED', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+        .then(res => res.json())
+        .then(data => setNotificationLogs(data.data?.logs || []))
+        .catch(() => setNotifError('Error fetching notifications'))
+        .finally(() => setNotifLoading(false));
+    }
+  }, [tab]);
+
+  // Fetch activity logs when Activity Log tab is selected
+  useEffect(() => {
+    if (tab === 'Activity Log') {
+      setActivityLoading(true);
+      setActivityError('');
+      fetch('https://ajo.nickyai.online/api/v1/admin/activity-logs', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+        .then(res => res.json())
+        .then(data => setActivityLogs(data.data?.logs || []))
+        .catch(() => setActivityError('Error fetching activity logs'))
+        .finally(() => setActivityLoading(false));
+    }
+  }, [tab]);
 
   if (showManage) {
     return (
@@ -125,13 +164,21 @@ const Notifications: React.FC = () => {
               <button className="text-[#3B82F6] font-medium text-sm md:text-base" onClick={() => setShowManage(true)}>Manage</button>
             </div>
             <div>
-              {notifications.map((n, i) => (
-                <div key={i} className="py-3 md:py-4 border-b border-[#ECECEC]">
-                  <div className="font-medium text-base md:text-lg mb-1">{n.title}</div>
-                  <div className="text-[#373737] text-sm md:text-base mb-1">{n.desc}</div>
-                  <div className="text-[#939393] text-xs md:text-sm">{n.time}</div>
-                </div>
-              ))}
+              {notifLoading ? (
+                <div className="text-center text-gray-400 py-8">Loading...</div>
+              ) : notifError ? (
+                <div className="text-center text-red-500 py-8">{notifError}</div>
+              ) : notificationLogs.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">No notifications available</div>
+              ) : (
+                notificationLogs.map((log) => (
+                  <div key={log.id} className="py-3 md:py-4 border-b border-[#ECECEC]">
+                    <div className="font-medium text-base md:text-lg mb-1">{log.action}</div>
+                    <div className="text-[#373737] text-sm md:text-base mb-1">{log.description}</div>
+                    <div className="text-[#939393] text-xs md:text-sm">{formatTimeAgo(log.createdAt)}</div>
+                  </div>
+                ))
+              )}
             </div>
             <div className="flex flex-wrap justify-center items-center gap-2 mt-6 md:mt-8 text-[#939393] text-sm md:text-base">
               <span className="cursor-pointer">Previous page</span>
@@ -148,16 +195,23 @@ const Notifications: React.FC = () => {
           <>
             <h2 className="text-xl md:text-2xl font-medium mb-4 md:mb-6">Recent Activity</h2>
             <div>
-              {activities.map((a, i) => (
-                <div key={i} className="py-3 md:py-4 border-b border-[#ECECEC] flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                  <div>
-                    <div className="font-medium text-base md:text-lg mb-1">{a.title}</div>
-                    <div className="text-[#373737] text-sm md:text-base mb-1">{a.desc}</div>
-                    <div className="text-[#939393] text-xs md:text-sm">{a.time}</div>
+              {activityLoading ? (
+                <div className="text-center text-gray-400 py-8">Loading...</div>
+              ) : activityError ? (
+                <div className="text-center text-red-500 py-8">{activityError}</div>
+              ) : activityLogs.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">No recent activity</div>
+              ) : (
+                activityLogs.map((log) => (
+                  <div key={log.id} className="py-3 md:py-4 border-b border-[#ECECEC] flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                    <div>
+                      <div className="font-medium text-base md:text-lg mb-1">{log.action}</div>
+                      <div className="text-[#373737] text-sm md:text-base mb-1">{log.description}</div>
+                      <div className="text-[#939393] text-xs md:text-sm">{formatTimeAgo(log.createdAt)}</div>
+                    </div>
                   </div>
-                  <span className="bg-[#FFF9DB] text-[#EAB308] px-4 py-1 rounded-full text-xs md:text-sm font-medium self-start md:self-auto">{a.status}</span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <div className="flex flex-wrap justify-center items-center gap-2 mt-6 md:mt-8 text-[#939393] text-sm md:text-base">
               <span className="cursor-pointer">Previous page</span>
@@ -175,4 +229,4 @@ const Notifications: React.FC = () => {
   );
 };
 
-export default Notifications; 
+export default AssNotifications; 

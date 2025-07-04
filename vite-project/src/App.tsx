@@ -43,6 +43,7 @@ import AssLoanApplicationDetails from './components/Association/Loans/LoanApplic
 import AssLoanDetails from './components/Association/Loans/LoanDetails';
 import AssReports from './components/Association/Reports';
 import AssSettings from './components/Association/Settings';
+import AssNotifications from './components/Association/Notifications';
 
 //auth page
 import LoginPage from './components/LoginPage';
@@ -104,6 +105,7 @@ const App: React.FC = () => {
           <Route path="/association/loan-applications/:id" element={<AssLoanApplicationDetails />} />
           <Route path="/association/reports" element={<AssReports />} />
           <Route path="/association/settings" element={<AssSettings />} />
+          <Route path="/association/notifications" element={<AssNotifications />} />
         </Route>
 
         {/* Redirect root to login */}

@@ -57,8 +57,9 @@ const AssMembers: React.FC = () => {
 
     const tabs = ['All Members', 'Loan Request', 'Financial Activity', 'Loan Performance'];
 
-    useEffect(() => {
+    const fetchMembers = () => {
         const token = localStorage.getItem('token');
+        setLoading(true);
         fetch('https://ajo.nickyai.online/api/v1/admin/all-member', {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -94,6 +95,10 @@ const AssMembers: React.FC = () => {
                 setLoading(false);
             })
             .catch(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        fetchMembers();
     }, []);
 
     const handleTabChange = (tab: string) => {
@@ -407,6 +412,7 @@ const AssMembers: React.FC = () => {
             <AddMemberModal 
                 isOpen={isModalOpen} 
                 onClose={() => setIsModalOpen(false)} 
+                onMemberAdded={fetchMembers}
             />
         </div>
     );

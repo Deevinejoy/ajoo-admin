@@ -1,29 +1,32 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const notificationList = [
-  {
-    title: "New Loan Request",
-    desc: "John Doe from Association X has requested new loan of ₦500,000.",
-    time: "2 hours ago",
-  },
-  {
-    title: "New Loan Request",
-    desc: "John Doe from Association X has requested new loan of ₦500,000.",
-    time: "2 hours ago",
-  },
-  {
-    title: "New Loan Request",
-    desc: "John Doe from Association X has requested new loan of ₦500,000.",
-    time: "2 hours ago",
-  },
-];
+interface NotificationLog {
+  id: string;
+  action: string;
+  description: string;
+  createdAt: string;
+}
+
+function formatTimeAgo(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000); // in seconds
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff / 60)} min${Math.floor(diff / 60) === 1 ? '' : 's'} ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) === 1 ? '' : 's'} ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} day${Math.floor(diff / 86400) === 1 ? '' : 's'} ago`;
+  return date.toLocaleString();
+}
 
 export default function Topbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotif, setShowNotif] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [notifLogs, setNotifLogs] = useState<NotificationLog[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifError, setNotifError] = useState("");
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent): void {
@@ -39,6 +42,34 @@ export default function Topbar() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
+  }, [showNotif]);
+
+  useEffect(() => {
+    if (showNotif) {
+      const fetchLogs = async () => {
+        setNotifLoading(true);
+        setNotifError("");
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch('https://ajo.nickyai.online/api/v1/cooperative/notifications/view', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          });
+          if (!response.ok) throw new Error('Failed to fetch notifications');
+          const result = await response.json();
+          // Try logs, fallback to notifications
+          setNotifLogs(result.data?.logs?.slice(0, 5) || result.data?.notifications?.slice(0, 5) || []);
+        } catch {
+          setNotifError('Error fetching notifications');
+        } finally {
+          setNotifLoading(false);
+        }
+      };
+      fetchLogs();
+    }
   }, [showNotif]);
 
   return (
@@ -75,13 +106,21 @@ export default function Topbar() {
             <div className="absolute right-0 mt-2 sm:mt-3 w-56 sm:w-64 md:w-72 bg-white rounded-xl shadow-lg z-50 p-2 sm:p-3">
               <div className="font-medium text-sm sm:text-base mb-2 sm:mb-3">Notification</div>
               <div>
-                {notificationList.map((n, i) => (
-                  <div key={i} className="mb-2 sm:mb-3 last:mb-0">
-                    <div className="font-medium text-xs sm:text-sm">{n.title}</div>
-                    <div className="text-[#373737] text-[10px] sm:text-xs">{n.desc}</div>
-                    <div className="text-[#939393] text-[8px] sm:text-[10px]">{n.time}</div>
-                  </div>
-                ))}
+                {notifLoading ? (
+                  <div className="text-center text-gray-400 py-4">Loading...</div>
+                ) : notifError ? (
+                  <div className="text-center text-red-500 py-4">{notifError}</div>
+                ) : notifLogs.length === 0 ? (
+                  <div className="text-center text-gray-400 py-4">No notifications</div>
+                ) : (
+                  notifLogs.map((log) => (
+                    <div key={log.id} className="mb-2 sm:mb-3 last:mb-0">
+                      <div className="font-medium text-xs sm:text-sm">{log.action || 'Notification'}</div>
+                      <div className="text-[#373737] text-[10px] sm:text-xs">{log.description}</div>
+                      <div className="text-[#939393] text-[8px] sm:text-[10px]">{formatTimeAgo(log.createdAt)}</div>
+                    </div>
+                  ))
+                )}
               </div>
               <button
                 className="w-full text-[#3161FF] text-xs sm:text-sm text-center mt-1 sm:mt-2 font-medium hover:underline"

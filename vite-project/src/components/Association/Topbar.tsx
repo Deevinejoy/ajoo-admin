@@ -158,7 +158,7 @@ export default function Topbar({ toggleSidebar, sidebarVisible }: TopbarProps) {
                   className="w-full text-[#3161FF] text-xs sm:text-sm text-center mt-1 sm:mt-2 font-medium hover:underline"
                   onClick={() => {
                     setShowNotif(false);
-                    navigate("/notifications");
+                    navigate("association/notifications");
                   }}
                 >
                   View all notifications

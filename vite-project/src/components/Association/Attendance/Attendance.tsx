@@ -1,12 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const meetingData = [
-  { id: 1, date: 'Jan 10,2023', name: 'Monthly General Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 2, date: 'Jan 10,2023', name: 'Committee  Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 3, date: 'Jan 10,2023', name: 'Board Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-  { id: 4, date: 'Jan 10,2023', name: 'Monthly General Meeting', type: 'General', attendees: '42/56', percent: '78%' },
-];
 
 const attendanceData = [
   { id: 'MM3452', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
@@ -17,18 +10,191 @@ const attendanceData = [
   { id: 'MM3457', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
 ];
 
+interface Meeting {
+  id: number;
+  name: string;
+  type: string;
+  date: string;
+  attendeesCount: number;
+  totalMembers: number;
+  associationId: string;
+  association: {
+    id: string;
+    name: string;
+    cooperativeId: string;
+    registrationNumber: string;
+    foundedDate: string;
+    address: string;
+    email: string;
+    phone: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
 const AssAttendance: React.FC = () => {
   const [tab, setTab] = useState<'Meeting Tracker' | 'Attendance Reports'>('Meeting Tracker');
   const navigate = useNavigate();
 
+  // State for meetings
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [meetingsLoading, setMeetingsLoading] = useState(false);
+  const [meetingsError, setMeetingsError] = useState('');
+
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ date: '', name: '', type: '' });
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+
+  const [associationId, setAssociationId] = useState<string>('');
+
+  useEffect(() => {
+    const id = localStorage.getItem('associationId') || '';
+    setAssociationId(id);
+  }, []);
+
+  // Fetch meetings (refactored to a function for refresh)
+  const fetchMeetings = () => {
+    setMeetingsLoading(true);
+    setMeetingsError('');
+    fetch(`https://ajo.nickyai.online/api/v1/admin/meetings/recent?associationId=${associationId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          setMeetings(data.data || []);
+        } else {
+          setMeetingsError(data.message || 'Failed to fetch meetings');
+        }
+      })
+      .catch(() => setMeetingsError('Error fetching meetings'))
+      .finally(() => setMeetingsLoading(false));
+  };
+
+  useEffect(() => {
+    if (associationId) {
+      fetchMeetings();
+    }
+  }, [associationId]);
+
+  // Handle form submit
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError('');
+    setFormSuccess('');
+    if (!form.date || !form.name || !form.type) {
+      setFormError('All fields are required');
+      setFormLoading(false);
+      return;
+    }
+    console.log('Submitting meeting form:', { ...form, associationId });
+    try {
+      const res = await fetch('https://ajo.nickyai.online/api/v1/admin/meetings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ ...form, associationId }),
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setFormSuccess('Meeting created successfully!');
+        setShowModal(false);
+        setForm({ date: '', name: '', type: '' });
+        fetchMeetings();
+      } else {
+        console.error('Backend error creating meeting:', data);
+        setFormError(data.message || 'Failed to create meeting');
+      }
+    } catch {
+      setFormError('Error creating meeting');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   return (
     <div className="p-3 pt-3 md:p-6  md:pt-3">
+      {/* Modal for creating meeting */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowModal(false)}
+              disabled={formLoading}
+            >
+              <span className="text-2xl">&times;</span>
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Create Meeting</h2>
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Date</label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={form.date}
+                  onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                  disabled={formLoading}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Meeting Name</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  disabled={formLoading}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Type</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={form.type}
+                  onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                  disabled={formLoading}
+                  required
+                />
+              </div>
+              {/* Hidden associationId */}
+              <input type="hidden" value={associationId} />
+              {formError && <div className="text-red-500 text-sm">{formError}</div>}
+              {formSuccess && <div className="text-green-600 text-sm">{formSuccess}</div>}
+              <button
+                type="submit"
+                className="w-full bg-[#3161FF] text-white py-2 rounded-lg font-medium mt-2 disabled:opacity-60"
+                disabled={formLoading}
+              >
+                {formLoading ? 'Creating...' : 'Create Meeting'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2 md:gap-0 mb-3 md:mb-5">
         <div>
           <h1 className="text-xl md:text-2xl font-medium">Attendance</h1>
           <p className="text-sm md:text-base text-[#666666]">Manage all cooperative loans</p>
         </div>
-        <button className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center gap-x-2 font-medium w-full md:w-auto mt-2 md:mt-0">
+        <button
+          className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center gap-x-2 font-medium w-full md:w-auto mt-2 md:mt-0"
+          onClick={() => setShowModal(true)}
+        >
           + Add Meeting
         </button>
       </div>
@@ -106,6 +272,13 @@ const AssAttendance: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-3 md:p-6 overflow-x-auto">
           <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Recent Meetings</h2>
           <div className="overflow-x-auto">
+            {meetingsLoading ? (
+              <div className="text-center text-gray-400 py-8">Loading...</div>
+            ) : meetingsError ? (
+              <div className="text-center text-red-500 py-8">{meetingsError}</div>
+            ) : meetings.length === 0 ? (
+              <div className="text-center text-gray-400 py-8">No recent meetings found</div>
+            ) : (
             <table className="w-full min-w-[700px]">
               <thead>
                 <tr className="border-b border-gray-200">
@@ -118,26 +291,30 @@ const AssAttendance: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {meetingData.map((m, i) => (
-                  <tr key={i} className="border-b border-gray-200">
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.date}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.name}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.type}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attendees}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.percent}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 flex gap-2">
-                      <button
-                        className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm"
-                        onClick={() => navigate(`/association/attendance/meeting/${m.id}`)}
-                      >
-                        Details
-                      </button>
-                      <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm">Edit</button>
-                    </td>
-                  </tr>
-                ))}
+                {meetings.map((m) => {
+                  const percent = m.totalMembers > 0 ? `${Math.round((m.attendeesCount / m.totalMembers) * 100)}%` : '0%';
+                  return (
+                    <tr key={m.id} className="border-b border-gray-200">
+                      <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.date}</td>
+                      <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.name}</td>
+                      <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.type}</td>
+                      <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attendeesCount}/{m.totalMembers}</td>
+                      <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{percent}</td>
+                      <td className="py-3 md:py-4 px-2 md:px-6 flex gap-2">
+                        <button
+                          className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm"
+                          onClick={() => navigate(`/association/attendance/meeting/${m.id}`)}
+                        >
+                          Details
+                        </button>
+                        <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm">Edit</button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
+            )}
           </div>
           {/* Footer Buttons */}
           <div className="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-6">

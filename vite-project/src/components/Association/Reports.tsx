@@ -19,20 +19,21 @@ const Reports: React.FC = () => {
     const fetchAll = async () => {
       try {
         const token = localStorage.getItem('token');
-        const [loanDistRes, attendanceRes, transactionRes] = await Promise.all([
-          fetch('https://ajo.nickyai.online/api/v1/cooperative/analytics/loan-distribution', {
+        const associationId = localStorage.getItem('associationId');
+        const [loanDistRes, repaymentRes, transactionRes] = await Promise.all([
+          fetch(`https://ajo.nickyai.online/api/v1/admin/reports/loans/total-distribution/${associationId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
-          fetch('https://ajo.nickyai.online/api/v1/cooperative/analytics/attendance-trend?associationId=9bea0709-6289-4328-b940-963b38b8448c&startDate=2000-01-01&endDate=2025-01-01', {
+          fetch(`https://ajo.nickyai.online/api/v1/admin/reports/repayments/trend/${associationId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           }),
-          fetch('https://ajo.nickyai.online/api/v1/cooperative/analytics/transaction-volume?startDate=2000-01-01&endDate=2025-01-01', {
+          fetch(`https://ajo.nickyai.online/api/v1/admin/reports/transactions/volume/${associationId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           })
         ]);
-        const [loanDistData, attendanceData, transactionData] = await Promise.all([
+        const [loanDistData, repaymentData, transactionData] = await Promise.all([
           loanDistRes.json(),
-          attendanceRes.json(),
+          repaymentRes.json(),
           transactionRes.json()
         ]);
         setLoanDistribution(
@@ -43,7 +44,7 @@ const Reports: React.FC = () => {
           }))
         );
         setAttendanceTrend(
-          (attendanceData.data || []).map((item: AttendanceTrendApi): BarChartData => ({
+          (repaymentData.data || []).map((item: AttendanceTrendApi): BarChartData => ({
             name: item.month || item.label || '',
             value: item.value || item.attendance || 0
           }))

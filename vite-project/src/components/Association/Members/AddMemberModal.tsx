@@ -1,25 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface AddMemberModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onMemberAdded?: () => void;
 }
 
-const AssAddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose }) => {
+const AssAddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onMemberAdded }) => {
     const [formData, setFormData] = useState({
         fullName: '',
         dateOfBirth: '',
         phoneNumber: '',
         email: '',
         address: '',
-        association: '',
+        associationId: '',
         photo: null as File | null
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    useEffect(() => {
+        if (isOpen) {
+            const associationId = localStorage.getItem('associationId') || '';
+            setFormData(prev => ({ ...prev, associationId }));
+        }
+    }, [isOpen]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle form submission
-        onClose();
+        setError(null);
+        console.log('Form data on submit:', formData);
+        if (!formData.fullName || !formData.dateOfBirth || !formData.phoneNumber || !formData.address || !formData.associationId) {
+            setError('Please fill in all required fields.');
+            return;
+        }
+        setLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const formPayload = new FormData();
+            formPayload.append('fullName', formData.fullName);
+            formPayload.append('dateOfBirth', formData.dateOfBirth);
+            formPayload.append('phoneNumber', formData.phoneNumber);
+            formPayload.append('email', formData.email);
+            formPayload.append('address', formData.address);
+            formPayload.append('associationId', formData.associationId);
+            if (formData.photo) formPayload.append('photo', formData.photo);
+            const response = await fetch('https://ajo.nickyai.online/api/v1/admin/create-member', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formPayload
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                // Log backend error for debugging
+                console.error('Backend error:', result);
+                setError(result.message || 'Failed to add member');
+                return;
+            }
+            if (typeof onMemberAdded === 'function') onMemberAdded();
+            onClose();
+        } catch (err: unknown) {
+            if (err && typeof err === 'object' && 'message' in err) {
+                setError((err as { message?: string }).message || 'An error occurred');
+            } else {
+                setError('An error occurred');
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -39,6 +89,7 @@ const AssAddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose }) =
                 </div>
 
                 <form onSubmit={handleSubmit}>
+                    {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -60,19 +111,7 @@ const AssAddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose }) =
                                     onChange={(e) => setFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
                                 />
                             </div>
-                            <div className='w-full'>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Association</label>
-                                <select
-                                    className="w-full p-2 pr-8 border border-gray-300 rounded-lg"
-                                    value={formData.association}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, association: e.target.value }))}
-                                >
-                                    <option value="">Select an association</option>
-                                    <option value="1">Association 1</option>
-                                    <option value="2">Association 2</option>
-                                </select>
-                            </div>
-                        </div> 
+                        </div>
                         <div className='flex gap-x-2'>
                             <div className='w-full'>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
@@ -107,7 +146,7 @@ const AssAddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose }) =
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Member ID or Photo</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Upload Member ID or Photo (Optional)</label>
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center bg-[#F5F7FA99] flex flex-col">
                                 <input
                                     type="file"
@@ -135,8 +174,9 @@ const AssAddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose }) =
                         <button
                             type="submit"
                             className="px-4 py-2 bg-black text-white rounded-lg"
+                            disabled={loading}
                         >
-                            Register Member
+                            {loading ? 'Registering...' : 'Register Member'}
                         </button>
                     </div>
                 </form>
