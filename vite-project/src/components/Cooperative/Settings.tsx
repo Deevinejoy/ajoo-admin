@@ -52,6 +52,18 @@ interface LoanStatusData {
   loans: LoanStatus[];
 }
 
+interface AdminProfile {
+  id: string;
+  phoneNumber: string;
+  adminType: string;
+  firstName: string;
+  lastName: string;
+  cooperativeId: string;
+  associationId: string | null;
+  email: string;
+  isActive: boolean;
+}
+
 const TABS = [
   { label: 'Cooperative', icon: <img src="/building.svg" alt="cooperative" className="w-5 h-5" /> },
   { label: 'Permission', icon: <img src="/Group.svg" alt="permission" className="w-5 h-5" /> },
@@ -104,11 +116,18 @@ const Settings: React.FC = () => {
   const [loanStatusLoading, setLoanStatusLoading] = useState(false);
   const [loanStatusError, setLoanStatusError] = useState<string | null>(null);
 
+  // Add state for admin profile
+  const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
+  const [adminProfileLoading, setAdminProfileLoading] = useState(false);
+  const [adminProfileError, setAdminProfileError] = useState<string | null>(null);
+  const [adminProfileSaving, setAdminProfileSaving] = useState(false);
+  const [adminProfileSaveMsg, setAdminProfileSaveMsg] = useState<string | null>(null);
+
   useEffect(() => {
     if (tab === 'Cooperative' && cooperativeId) {
       setCoopLoading(true);
       setCoopError(null);
-      fetch(`https://ajo.nickyai.online/api/v1/cooperative/settings/info/${cooperativeId}`, {
+      fetch(`https://ajo.nickyai.online/api/v1/cooperative/settings/info`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',
@@ -117,7 +136,18 @@ const Settings: React.FC = () => {
       })
         .then(res => res.json())
         .then(data => {
-          setCoopDetails(data.data || {});
+          console.log('Cooperative details API Response:', data); // Log the full response
+          if (data.status === 'success' && data.data) {
+            setCoopDetails(prev => ({
+              ...prev,
+              ...data.data,
+              phone: data.data.phoneNumber || data.data.phone || prev?.phone || '',
+              registrationNumber: data.data.registrationNumber ?? prev?.registrationNumber ?? '',
+              address: data.data.address ?? prev?.address ?? '',
+              email: data.data.email ?? prev?.email ?? '',
+              foundedDate: data.data.yearEstablished ?? prev?.foundedDate ?? '', // <-- map yearEstablished
+            }));
+          }
           setCoopLoading(false);
         })
         .catch(() => {
@@ -213,6 +243,88 @@ const Settings: React.FC = () => {
     }
   }, [showAddRoleModal]);
 
+  // Fetch admin profile when Profile tab is selected
+  useEffect(() => {
+    if (tab === 'Profile') {
+      setAdminProfileLoading(true);
+      setAdminProfileError(null);
+      fetch('https://ajo.nickyai.online/api/v1/admin/me', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success' && data.data) {
+            setAdminProfile(data.data);
+          } else {
+            setAdminProfileError('Failed to load profile');
+          }
+          setAdminProfileLoading(false);
+        })
+        .catch(() => {
+          setAdminProfileError('Failed to load profile');
+          setAdminProfileLoading(false);
+        });
+    }
+  }, [tab]);
+
+  const handleAdminProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setAdminProfile((prev) => prev ? { ...prev, [name]: value } : null);
+  };
+
+  const handleAdminProfileSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminProfileSaving(true);
+    setAdminProfileSaveMsg(null);
+    try {
+      const response = await fetch(`https://ajo.nickyai.online/api/v1/admin/me`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          id: adminProfile?.id,
+          firstName: adminProfile?.firstName,
+          lastName: adminProfile?.lastName,
+          email: adminProfile?.email,
+          phoneNumber: adminProfile?.phoneNumber,
+        })
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || 'Failed to update profile');
+      }
+      setAdminProfileSaveMsg('Profile updated successfully!');
+      
+      // Refetch updated profile data
+      const profileRes = await fetch('https://ajo.nickyai.online/api/v1/admin/me', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      const profileData = await profileRes.json();
+      if (profileData.status === 'success' && profileData.data) {
+        setAdminProfile(profileData.data);
+      }
+    } catch (err: unknown) {
+      let errorMsg = 'Failed to update profile';
+      if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {
+        errorMsg = (err as { message: string }).message;
+      }
+      setAdminProfileSaveMsg(errorMsg);
+    } finally {
+      setAdminProfileSaving(false);
+    }
+  };
+
   const handleCoopChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCoopDetails((prev) => prev ? { ...prev, [name]: value } : { [name]: value });
@@ -223,7 +335,7 @@ const Settings: React.FC = () => {
     setCoopSaving(true);
     setCoopSaveMsg(null);
     try {
-      const response = await fetch(`https://ajo.nickyai.online/api/v1/cooperative/settings/info/${cooperativeId}`, {
+      const response = await fetch(`https://ajo.nickyai.online/api/v1/cooperative/settings/info`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -231,10 +343,12 @@ const Settings: React.FC = () => {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
+          id: coopDetails?.id,
           name: coopDetails?.name,
           address: coopDetails?.address,
           email: coopDetails?.email,
           phone: coopDetails?.phone,
+          yearEstablished: coopDetails?.foundedDate, // <-- send as yearEstablished
         })
       });
       if (!response.ok) {
@@ -242,6 +356,26 @@ const Settings: React.FC = () => {
         throw new Error(result.message || 'Failed to update details');
       }
       setCoopSaveMsg('Changes saved successfully!');
+      // Refetch updated details
+      const detailsRes = await fetch(`https://ajo.nickyai.online/api/v1/cooperative/settings/info`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      const detailsData = await detailsRes.json();
+      if (detailsData.status === 'success' && detailsData.data) {
+        setCoopDetails(prev => ({
+          ...prev,
+          ...detailsData.data,
+          phone: detailsData.data.phoneNumber || detailsData.data.phone || prev?.phone || '',
+          registrationNumber: detailsData.data.registrationNumber ?? prev?.registrationNumber ?? '',
+          address: detailsData.data.address ?? prev?.address ?? '',
+          email: detailsData.data.email ?? prev?.email ?? '',
+          foundedDate: detailsData.data.yearEstablished ?? prev?.foundedDate ?? '', // <-- map yearEstablished
+        }));
+      }
     } catch (err: unknown) {
       let errorMsg = 'Failed to save changes';
       if (err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string') {
@@ -493,7 +627,7 @@ const Settings: React.FC = () => {
           ) : coopDetails ? (
             <form className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6" onSubmit={handleCoopSave}>
               <div>
-                <label className="block text-sm md:text-base font-medium mb-1">Association Name</label>
+                <label className="block text-sm md:text-base font-medium mb-1">Cooperative Name</label>
                 <input name="name" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={coopDetails.name || ''} onChange={handleCoopChange} />
               </div>
               <div>
@@ -501,8 +635,8 @@ const Settings: React.FC = () => {
                 <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value={coopDetails.id || ''} readOnly />
               </div>
               <div>
-                <label className="block text-sm md:text-base font-medium mb-1">Registration number</label>
-                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value={coopDetails.registrationNumber || ''} readOnly />
+                <label className="block text-sm md:text-base font-medium mb-1">Registration Number</label>
+                <input name="registrationNumber" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={coopDetails.registrationNumber || ''} onChange={handleCoopChange} />
               </div>
               <div>
                 <label className="block text-sm md:text-base font-medium mb-1">Founded Date</label>
@@ -600,7 +734,7 @@ const Settings: React.FC = () => {
                   ) : (
                     // View Mode
                     <>
-                      <div className="flex flex-wrap md:flex-nowrap justify-between items-center mb-2 gap-2">
+            <div className="flex flex-wrap md:flex-nowrap justify-between items-center mb-2 gap-2">
                         <div>
                           <div className="font-medium text-base md:text-lg">{role.name}</div>
                           <div className="text-[#939393] text-xs md:text-sm">
@@ -714,7 +848,7 @@ const Settings: React.FC = () => {
                     onChange={(e) => setNewRole(prev => ({ ...prev, email: e.target.value }))}
                     required
                   />
-                </div>
+            </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Phone Number</label>
                   <input
@@ -724,8 +858,8 @@ const Settings: React.FC = () => {
                     onChange={(e) => setNewRole(prev => ({ ...prev, phoneNumber: e.target.value }))}
                     required
                   />
-                </div>
-              </div>
+            </div>
+          </div>
 
               {/* Permissions */}
               <div>
@@ -777,7 +911,7 @@ const Settings: React.FC = () => {
                 >
                   {addingRole ? 'Creating...' : 'Create Role'}
                 </button>
-              </div>
+            </div>
             </form>
           </div>
         </div>
@@ -793,21 +927,21 @@ const Settings: React.FC = () => {
             <div className="text-center text-red-500 py-8">{loanStatusError}</div>
           ) : loanStatusData ? (
             <>
-              {editingLoanIdx === null ? (
-                <div className="bg-[#FAFAFA] rounded-xl p-4 md:p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full mb-4 md:mb-6 min-w-[600px]">
-                      <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Name</th>
-                          <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Interest(%)</th>
-                          <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Months</th>
-                          <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Min. Amount(₦)</th>
-                          <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Max Amount(₦)</th>
-                          <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+          {editingLoanIdx === null ? (
+            <div className="bg-[#FAFAFA] rounded-xl p-4 md:p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full mb-4 md:mb-6 min-w-[600px]">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Name</th>
+                      <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Interest(%)</th>
+                      <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Months</th>
+                      <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Min. Amount(₦)</th>
+                      <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Max Amount(₦)</th>
+                      <th className="text-left py-3 md:py-4 px-3 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                         {loanStatusData.loans.map((loan, idx) => (
                           <tr key={loan.id} className="border-b border-gray-200">
                             <td className="py-3 md:py-4 px-3 md:px-6 text-[#373737] text-xs md:text-sm">{loan.purpose}</td>
@@ -815,49 +949,49 @@ const Settings: React.FC = () => {
                             <td className="py-3 md:py-4 px-3 md:px-6 text-[#373737] text-xs md:text-sm">{loan.termMonths}</td>
                             <td className="py-3 md:py-4 px-3 md:px-6 text-[#373737] text-xs md:text-sm">₦{Number(loan.minimumLoanAmount).toLocaleString()}</td>
                             <td className="py-3 md:py-4 px-3 md:px-6 text-[#373737] text-xs md:text-sm">₦{Number(loan.maximumLoanAmount).toLocaleString()}</td>
-                            <td className="py-3 md:py-4 px-3 md:px-6">
-                              <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-3 md:px-6 py-1 md:py-2 rounded-lg text-xs md:text-sm" onClick={() => setEditingLoanIdx(idx)}>Edit</button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <button className="w-full md:w-auto bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg text-sm md:text-base">Add Loan</button>
-                </div>
-              ) : (
-                <form className="bg-[#FAFAFA] rounded-xl p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                  <h2 className="col-span-1 md:col-span-2 text-lg md:text-xl font-semibold mb-1">Loan Settings</h2>
-                  <p className="col-span-1 md:col-span-2 text-[#939393] text-sm md:text-base mb-2 md:mb-6">Configure loan parameters and repayment terms</p>
-                  <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm md:text-base font-medium mb-1">Loan Name</label>
+                        <td className="py-3 md:py-4 px-3 md:px-6">
+                          <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-3 md:px-6 py-1 md:py-2 rounded-lg text-xs md:text-sm" onClick={() => setEditingLoanIdx(idx)}>Edit</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button className="w-full md:w-auto bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg text-sm md:text-base">Add Loan</button>
+            </div>
+          ) : (
+            <form className="bg-[#FAFAFA] rounded-xl p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <h2 className="col-span-1 md:col-span-2 text-lg md:text-xl font-semibold mb-1">Loan Settings</h2>
+              <p className="col-span-1 md:col-span-2 text-[#939393] text-sm md:text-base mb-2 md:mb-6">Configure loan parameters and repayment terms</p>
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm md:text-base font-medium mb-1">Loan Name</label>
                     <input className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={loanStatusData.loans[editingLoanIdx].purpose} readOnly />
-                  </div>
-                  <div>
-                    <label className="block text-sm md:text-base font-medium mb-1">Interest Rate(%)</label>
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Interest Rate(%)</label>
                     <input className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={loanStatusData.loans[editingLoanIdx].interestRate} readOnly />
-                  </div>
-                  <div>
-                    <label className="block text-sm md:text-base font-medium mb-1">Maximum Loan Amount(₦)</label>
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Maximum Loan Amount(₦)</label>
                     <input className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={`₦${Number(loanStatusData.loans[editingLoanIdx].maximumLoanAmount).toLocaleString()}`} readOnly />
-                  </div>
-                  <div>
-                    <label className="block text-sm md:text-base font-medium mb-1">Minimum Loan Amount(₦)</label>
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Minimum Loan Amount(₦)</label>
                     <input className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={`₦${Number(loanStatusData.loans[editingLoanIdx].minimumLoanAmount).toLocaleString()}`} readOnly />
-                  </div>
-                  <div>
-                    <label className="block text-sm md:text-base font-medium mb-1">Late Fee(₦)</label>
-                    <input className="w-full p-2 border border-gray-300 rounded-lg bg-white" value="30,000" readOnly />
-                  </div>
-                  <div className="col-span-1 md:col-span-2">
-                    <label className="block text-sm md:text-base font-medium mb-1">Interest Application</label>
-                    <input className="w-full p-2 border border-gray-300 rounded-lg bg-white" value="Reducing Balance" readOnly />
-                  </div>
-                  <div className="col-span-1 md:col-span-2 mt-2 md:mt-4">
-                    <button type="button" className="w-full md:w-auto bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg text-sm md:text-base" onClick={() => setEditingLoanIdx(null)}>Save Changes</button>
-                  </div>
-                </form>
-              )}
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Late Fee(₦)</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-white" value="30,000" readOnly />
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm md:text-base font-medium mb-1">Interest Application</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-white" value="Reducing Balance" readOnly />
+              </div>
+              <div className="col-span-1 md:col-span-2 mt-2 md:mt-4">
+                <button type="button" className="w-full md:w-auto bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg text-sm md:text-base" onClick={() => setEditingLoanIdx(null)}>Save Changes</button>
+              </div>
+            </form>
+          )}
             </>
           ) : null}
         </div>
@@ -866,37 +1000,46 @@ const Settings: React.FC = () => {
         <div className="bg-white rounded-lg p-4 md:p-8">
           <h2 className="text-lg md:text-xl font-semibold mb-1">Profile Settings</h2>
           <p className="text-[#939393] text-sm md:text-base mb-4 md:mb-6">Manage your personal information</p>
+          {adminProfileLoading ? (
+            <div className="text-center text-gray-500 py-8">Loading...</div>
+          ) : adminProfileError ? (
+            <div className="text-center text-red-500 py-8">{adminProfileError}</div>
+          ) : adminProfile ? (
+            <>
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 mb-6 md:mb-8">
             <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#D6E6EF] flex items-center justify-center text-2xl md:text-3xl font-medium text-[#22223B]">
-              JD
+                  {adminProfile.firstName?.[0] || ''}{adminProfile.lastName?.[0] || ''}
             </div>
             <button className="w-full md:w-auto bg-[#F5F7FA] border border-[#C4C4C4] px-4 md:px-6 py-2 rounded-lg text-sm md:text-base">Upload Photo</button>
           </div>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6" onSubmit={handleAdminProfileSave}>
             <div>
               <label className="block text-sm md:text-base font-medium mb-1">First Name</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="John" readOnly />
+                  <input name="firstName" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={adminProfile.firstName || ''} onChange={handleAdminProfileChange} />
             </div>
             <div>
               <label className="block text-sm md:text-base font-medium mb-1">Last Name</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="Doe" readOnly />
+                  <input name="lastName" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={adminProfile.lastName || ''} onChange={handleAdminProfileChange} />
             </div>
             <div>
               <label className="block text-sm md:text-base font-medium mb-1">Email</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="john.doe@example.com" readOnly />
+                  <input name="email" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={adminProfile.email || ''} onChange={handleAdminProfileChange} />
             </div>
             <div>
               <label className="block text-sm md:text-base font-medium mb-1">Phone</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="+234 012 345 6789" readOnly />
+                  <input name="phoneNumber" className="w-full p-2 border border-gray-300 rounded-lg bg-white" value={adminProfile.phoneNumber || ''} onChange={handleAdminProfileChange} />
             </div>
             <div>
               <label className="block text-sm md:text-base font-medium mb-1">Role</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="Admin" readOnly />
+                  <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value={adminProfile.adminType || ''} readOnly />
             </div>
             <div className="col-span-1 md:col-span-2 mt-2 md:mt-4">
-              <button className="w-full md:w-auto bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg text-sm md:text-base">Save Changes</button>
+              <button type="submit" className="w-full md:w-auto bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg text-sm md:text-base" disabled={adminProfileSaving}>{adminProfileSaving ? 'Saving...' : 'Save Changes'}</button>
+              {adminProfileSaveMsg && <div className={`mt-2 text-sm ${adminProfileSaveMsg.includes('success') ? 'text-green-600' : 'text-red-500'}`}>{adminProfileSaveMsg}</div>}
             </div>
           </form>
+            </>
+          ) : null}
         </div>
       )}
     </div>

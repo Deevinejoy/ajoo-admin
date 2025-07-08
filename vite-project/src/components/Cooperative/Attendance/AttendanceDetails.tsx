@@ -39,10 +39,113 @@ const AttendanceDetails: React.FC = () => {
   const [recentMeetingsLoading, setRecentMeetingsLoading] = useState(true);
   const [recentMeetingsError, setRecentMeetingsError] = useState<string | null>(null);
   
+  // State for meeting summary (for the cards)
+  const [meetingSummary, setMeetingSummary] = useState<{
+    totalMeetings?: number;
+    averageAttendance?: string;
+    nextMeeting?: { id: number; name: string; type: string; date: string } | null;
+  }>({});
+  const [meetingSummaryLoading, setMeetingSummaryLoading] = useState(false);
   // Add state for member reports
   const [memberReports, setMemberReports] = useState<MemberReport[]>([]);
   const [memberReportsLoading, setMemberReportsLoading] = useState(false);
   const [memberReportsError, setMemberReportsError] = useState<string | null>(null);
+  
+  // --- Duplicated Meeting Creation Modal, Form, API, and States ---
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ date: '', name: '', type: '' });
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+
+  // Extract fetch functions for reusability
+  const fetchRecentMeetings = async () => {
+    setRecentMeetingsLoading(true);
+    setRecentMeetingsError(null);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`https://ajo.nickyai.online/api/v1/cooperative/association/${id}/recent-meetings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const data = await res.json();
+      console.log('Recent meetings API Response:', data);
+      setRecentMeetings(Array.isArray(data) ? data : data.data || []);
+    } catch (error: unknown) {
+      setRecentMeetingsError(error instanceof Error ? error.message : 'Failed to fetch recent meetings');
+    } finally {
+      setRecentMeetingsLoading(false);
+    }
+  };
+
+  const fetchMeetingSummary = async () => {
+    setMeetingSummaryLoading(true);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`https://ajo.nickyai.online/api/v1/cooperative/${id}/meeting-summary`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const data = await res.json();
+      if (data.status === 'success' && data.data) {
+        setMeetingSummary(data.data);
+      } else {
+        setMeetingSummary({});
+      }
+    } catch {
+      setMeetingSummary({});
+    } finally {
+      setMeetingSummaryLoading(false);
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError('');
+    setFormSuccess('');
+    if (!form.date || !form.name || !form.type) {
+      setFormError('All fields are required');
+      setFormLoading(false);
+      return;
+    }
+    const associationId = id;
+    try {
+      // Use the new endpoint for meeting creation
+      const res = await fetch('https://ajo.nickyai.online/api/v1/cooperative/meetings/association', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ ...form, associationId }),
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setFormSuccess('Meeting created successfully!');
+        setShowModal(false);
+        setForm({ date: '', name: '', type: '' });
+        // Refresh meetings and summary after successful creation
+        fetchRecentMeetings();
+        fetchMeetingSummary();
+      } else {
+        setFormError(data.message || 'Failed to create meeting');
+      }
+    } catch {
+      setFormError('Error creating meeting');
+    } finally {
+      setFormLoading(false);
+    }
+  };
   
   useEffect(() => {
     if (id) {
@@ -82,29 +185,9 @@ const AttendanceDetails: React.FC = () => {
           setLoading(false);
         });
       // Fetch recent meetings
-      setRecentMeetingsLoading(true);
-      setRecentMeetingsError(null);
-      fetch(`https://ajo.nickyai.online/api/v1/cooperative/association/${id}/recent-meetings`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      })
-        .then(res => {
-          if (!res.ok) {
-            throw new Error(`HTTP error! status: ${res.status}`);
-          }
-          return res.json();
-        })
-        .then(data => {
-          setRecentMeetings(data.data || []);
-          setRecentMeetingsLoading(false);
-        })
-        .catch(error => {
-          setRecentMeetingsError(error.message);
-          setRecentMeetingsLoading(false);
-        });
+      fetchRecentMeetings();
+      // Fetch meeting summary for the cards
+      fetchMeetingSummary();
     }
   }, [id]);
 
@@ -186,6 +269,67 @@ const AttendanceDetails: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 pt-2 md:pt-3 bg-[#F5F7FA]">
+      {/* Modal for creating meeting */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowModal(false)}
+              disabled={formLoading}
+            >
+              <span className="text-2xl">&times;</span>
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Create Meeting</h2>
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Date</label>
+                <input
+                  type="date"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={form.date}
+                  onChange={e => setForm(f => ({ ...f, date: e.target.value }))}
+                  disabled={formLoading}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Meeting Name</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  disabled={formLoading}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Type</label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={form.type}
+                  onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
+                  disabled={formLoading}
+                  required
+                />
+              </div>
+              {/* Hidden associationId */}
+              <input type="hidden" value={id} />
+              {formError && <div className="text-red-500 text-sm">{formError}</div>}
+              {formSuccess && <div className="text-green-600 text-sm">{formSuccess}</div>}
+              <button
+                type="submit"
+                className="w-full bg-[#3161FF] text-white py-2 rounded-lg font-medium mt-2 disabled:opacity-60"
+                disabled={formLoading}
+              >
+                {formLoading ? 'Creating...' : 'Create Meeting'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-5 gap-3 md:gap-0">
     
       
@@ -203,7 +347,7 @@ const AttendanceDetails: React.FC = () => {
         </div>
         </div>
        
-        <button className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center md:justify-start gap-x-2 font-medium w-full md:w-auto">
+        <button className="bg-[#3161FF] text-white px-4 md:px-6 py-2 rounded-lg flex items-center justify-center md:justify-start gap-x-2 font-medium w-full md:w-auto" onClick={() => setShowModal(true)}>
           + Add Meeting
         </button>
       </div>
@@ -213,7 +357,9 @@ const AttendanceDetails: React.FC = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-[#373737] text-sm md:text-base">Total Meetings</h3>
-                    <p className="text-xl md:text-2xl font-semibold">{association.totalMeetings || 0}</p>
+                    <p className="text-xl md:text-2xl font-semibold">
+                      {meetingSummaryLoading ? '...' : (meetingSummary.totalMeetings ?? association.totalMeetings ?? 0)}
+                    </p>
                 </div>
                 <div className="self-center">
                     <img src="/briefcase.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
@@ -224,7 +370,9 @@ const AttendanceDetails: React.FC = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-[#373737] text-sm md:text-base">Avg. Attendance</h3>
-                    <p className="text-xl md:text-2xl font-semibold">{association.averageAttendance || '0%'}</p>
+                    <p className="text-xl md:text-2xl font-semibold">
+                      {meetingSummaryLoading ? '...' : (meetingSummary.averageAttendance ?? association.averageAttendance ?? '0%')}
+                    </p>
                 </div>
                 <div className="self-center">
                     <img src="/people.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
@@ -235,7 +383,13 @@ const AttendanceDetails: React.FC = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-[#373737] text-sm md:text-base">Next Meeting</h3>
-                    <p className="text-lg md:text-xl font-semibold">April 12</p>
+                    <p className="text-lg md:text-xl font-semibold">
+                      {meetingSummaryLoading
+                        ? '...'
+                        : (meetingSummary.nextMeeting?.date
+                            ? new Date(meetingSummary.nextMeeting.date).toLocaleDateString()
+                            : 'N/A')}
+                    </p>
                 </div>
                 <div className="self-center">
                     <img src="/loans1.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />

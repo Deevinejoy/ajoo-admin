@@ -43,7 +43,7 @@ import AssLoanApplicationDetails from './components/Association/Loans/LoanApplic
 import AssLoanDetails from './components/Association/Loans/LoanDetails';
 import AssReports from './components/Association/Reports';
 import AssSettings from './components/Association/Settings';
-import AssNotifications from './components/Association/Notifications';
+import AssNotifications from './components/Association/AssNotifications';
 
 //auth page
 import LoginPage from './components/LoginPage';
@@ -58,6 +58,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage
          />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+      
         
         {/* Protected Admin Routes */}
         <Route
@@ -87,9 +88,11 @@ const App: React.FC = () => {
           <Route path="/transactions/:id" element={<TransactionDetails />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/notifications" element={<Notifications />} />
+          
           <Route path="/loan-applications/:id" element={<LoanApplicationDetails />} />
-        </Route>
+          <Route path="/notifications" element={<Notifications />} />
+          </Route>
+      
 
         {/* Protected Association Routes */}
         <Route
@@ -104,11 +107,9 @@ const App: React.FC = () => {
           <Route path="/association/members" element={<AssMembers />} />
           <Route path="/association/attendance/meeting/:id" element={<AssMeetingDetails />} />
           <Route path="/association/attendance" element={<AssAttendance />} />
-
           <Route path="/association/attendance/monthly-summary" element={<AssMonthlySummary />} />
           <Route path="/association/attendance/member-report" element={<AssMemberAttendanceReport />} />
           <Route path="/association/attendance/trends" element={<AssAttendanceTrends />} />
-
           <Route path="/association/transactions" element={<AssTransaction />} />
           <Route path="/association/transactions/:id" element={<AssTransactionDetails />} />
           <Route path="/association/loans" element={<AssLoans />} />
@@ -121,7 +122,10 @@ const App: React.FC = () => {
 
         {/* Redirect root to login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
+      
+       
       </Routes>
+      
     </UserProvider>
   );
 };
