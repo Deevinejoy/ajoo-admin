@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const attendanceData = [
-  { id: 'MM3452', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3453', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3454', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3455', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3456', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3457', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-];
-
 interface Meeting {
   id: number;
   name: string;
@@ -32,6 +23,12 @@ interface Meeting {
   };
 }
 
+interface MemberAttendance {
+  memberName: string;
+  meetingsAttended: string;
+  attendanceRate: string;
+}
+
 const AssAttendance: React.FC = () => {
   const [tab, setTab] = useState<'Meeting Tracker' | 'Attendance Reports'>('Meeting Tracker');
   const navigate = useNavigate();
@@ -41,12 +38,24 @@ const AssAttendance: React.FC = () => {
   const [meetingsLoading, setMeetingsLoading] = useState(false);
   const [meetingsError, setMeetingsError] = useState('');
 
+  // State for member attendance reports
+  const [memberAttendance, setMemberAttendance] = useState<MemberAttendance[]>([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [attendanceError, setAttendanceError] = useState('');
+
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ date: '', name: '', type: '' });
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
+
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState<{ id: number | null; date: string; name: string; type: string }>({ id: null, date: '', name: '', type: '' });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [editSuccess, setEditSuccess] = useState('');
 
   const [associationId, setAssociationId] = useState<string>('');
 
@@ -78,9 +87,53 @@ const AssAttendance: React.FC = () => {
       .finally(() => setMeetingsLoading(false));
   };
 
+  // Fetch member attendance reports
+  const fetchMemberAttendance = () => {
+    setAttendanceLoading(true);
+    setAttendanceError('');
+    const token = localStorage.getItem('token');
+    if (!associationId || !token) {
+      setAttendanceLoading(false);
+      return;
+    }
+    console.log('Fetching member attendance for associationId:', associationId);
+    console.log('Token:', token);
+    fetch(`https://ajo.nickyai.online/api/v1/cooperative/association/${associationId}/member-reports`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    })
+      .then(res => {
+        console.log('Member attendance response status:', res.status);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Member attendance API Response:', data);
+        // Check if data is an array (direct response) or has status/data structure
+        if (Array.isArray(data)) {
+          setMemberAttendance(data);
+        } else if (data.status === 'success' && data.data) {
+          setMemberAttendance(data.data);
+        } else {
+          setAttendanceError(data.message || 'Failed to fetch member attendance');
+        }
+      })
+      .catch((error) => {
+        console.error('Member attendance fetch error:', error);
+        setAttendanceError('Error fetching member attendance');
+      })
+      .finally(() => setAttendanceLoading(false));
+  };
+
   useEffect(() => {
     if (associationId) {
       fetchMeetings();
+      fetchMemberAttendance();
     }
   }, [associationId]);
 
@@ -120,6 +173,64 @@ const AssAttendance: React.FC = () => {
       setFormError('Error creating meeting');
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  // Edit meeting handler
+  const handleEditClick = (meeting: Meeting) => {
+    setEditForm({
+      id: meeting.id,
+      date: meeting.date,
+      name: meeting.name,
+      type: meeting.type,
+    });
+    setEditError('');
+    setEditSuccess('');
+    setShowEditModal(true);
+  };
+
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditLoading(true);
+    setEditError('');
+    setEditSuccess('');
+    if (!editForm.date || !editForm.name || !editForm.type) {
+      setEditError('All fields are required');
+      setEditLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch(`https://ajo.nickyai.online/api/v1/admin/meetings/${editForm.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          date: editForm.date,
+          name: editForm.name,
+          type: editForm.type,
+          associationId: associationId,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && (data.status === 'success' || data.status === true)) {
+        setEditSuccess('Meeting updated successfully!');
+        setShowEditModal(false);
+        fetchMeetings();
+      } else {
+        setEditError(data.message || 'Failed to update meeting');
+      }
+    } catch {
+      setEditError('Error updating meeting');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -181,6 +292,67 @@ const AssAttendance: React.FC = () => {
                 disabled={formLoading}
               >
                 {formLoading ? 'Creating...' : 'Create Meeting'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+              onClick={() => setShowEditModal(false)}
+              disabled={editLoading}
+            >
+              <span className="text-2xl">&times;</span>
+            </button>
+            <h2 className="text-xl font-semibold mb-4">Edit Meeting</h2>
+            <form onSubmit={handleEditFormSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={editForm.date}
+                  onChange={handleEditFormChange}
+                  disabled={editLoading}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Meeting Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={editForm.name}
+                  onChange={handleEditFormChange}
+                  disabled={editLoading}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Type</label>
+                <input
+                  type="text"
+                  name="type"
+                  className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#3161FF]"
+                  value={editForm.type}
+                  onChange={handleEditFormChange}
+                  disabled={editLoading}
+                  required
+                />
+              </div>
+              {editError && <div className="text-red-500 text-sm">{editError}</div>}
+              {editSuccess && <div className="text-green-600 text-sm">{editSuccess}</div>}
+              <button
+                type="submit"
+                className="w-full bg-[#3161FF] text-white py-2 rounded-lg font-medium mt-2 disabled:opacity-60"
+                disabled={editLoading}
+              >
+                {editLoading ? 'Updating...' : 'Update Meeting'}
               </button>
             </form>
           </div>
@@ -303,11 +475,16 @@ const AssAttendance: React.FC = () => {
                       <td className="py-3 md:py-4 px-2 md:px-6 flex gap-2">
                         <button
                           className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm"
+                          onClick={() => handleEditClick(m)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm"
                           onClick={() => navigate(`/association/attendance/meeting/${m.id}`)}
                         >
                           Details
                         </button>
-                        <button className="bg-[#F5F7FA] border border-[#C4C4C4] px-2 md:px-4 py-1 md:py-2 rounded-lg text-xs md:text-sm">Edit</button>
                       </td>
                     </tr>
                   );
@@ -344,28 +521,33 @@ const AssAttendance: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-3 md:p-6 overflow-x-auto">
           <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Members Attendance</h2>
           <div className="overflow-x-auto">
+            {attendanceLoading ? (
+              <div className="text-center text-gray-400 py-8">Loading...</div>
+            ) : attendanceError ? (
+              <div className="text-center text-red-500 py-8">{attendanceError}</div>
+            ) : memberAttendance.length === 0 ? (
+              <div className="text-center text-gray-400 py-8">No member attendance data found</div>
+            ) : (
             <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Member Name</th>
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Meetings attended</th>
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Attendance Rate</th>
-                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Last Attended</th>
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {attendanceData.map((m, i) => (
+                {memberAttendance.map((member, i) => (
                   <tr key={i} className="border-b border-gray-200">
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.name}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attended}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.rate}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.last}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{member.memberName}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{member.meetingsAttended}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{member.attendanceRate}%</td>
                     <td className="py-3 md:py-4 px-2 md:px-6">
                       
                       <button 
                         className="flex items-center gap-1 md:gap-x-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200 text-xs md:text-sm"
-                        onClick={() => navigate(`/association/attendance/member-report/${m.id}`)}
+                        onClick={() => navigate(`/association/attendance/member-report/${member.memberName}`)}
                       >
                         <img src="/view.svg" alt="view" width={16} height={16} className="md:w-[18px] md:h-[18px]" />
                         <span className="font-medium">View</span>
@@ -375,6 +557,7 @@ const AssAttendance: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
           {/* Footer Buttons */}
           <div className="flex flex-col md:flex-row gap-3 md:gap-4 mt-4 md:mt-6">

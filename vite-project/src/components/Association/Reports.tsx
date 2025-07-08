@@ -82,6 +82,14 @@ const Reports: React.FC = () => {
           <div className="font-medium mb-2 text-center">Loan Distribution</div>
           <div className="text-[#939393] text-sm mb-2 text-center">Current period</div>
           <div className="w-full h-40">
+            {loanDistribution.length === 0 ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-gray-400 text-sm">No data available</div>
+                  <div className="text-gray-300 text-xs">No loan distribution data to display</div>
+                </div>
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={loanDistribution} dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={2} startAngle={90} endAngle={-270} >
@@ -91,6 +99,7 @@ const Reports: React.FC = () => {
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
         {/* Loan Repayment Trend */}
@@ -98,6 +107,14 @@ const Reports: React.FC = () => {
           <div className="font-medium mb-2 text-center">Loan Repayment Trend</div>
           <div className="text-[#939393] text-sm mb-2 text-center">Last 7 months</div>
           <div className="w-full h-40">
+            {attendanceTrend.length === 0 ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-gray-400 text-sm">No data available</div>
+                  <div className="text-gray-300 text-xs">No repayment trend data to display</div>
+                </div>
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={attendanceTrend} barSize={50}>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
@@ -106,6 +123,7 @@ const Reports: React.FC = () => {
                 <Bar dataKey="value" fill="#111827"  />
               </BarChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
         {/* Member Attendance */}
@@ -113,6 +131,14 @@ const Reports: React.FC = () => {
           <div className="font-medium mb-2 text-center">Member Attendance</div>
           <div className="text-[#939393] text-sm mb-2 text-center">Overall attendance rate</div>
           <div className="w-full h-40">
+            {loanDistribution.length === 0 ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-gray-400 text-sm">No data available</div>
+                  <div className="text-gray-300 text-xs">No attendance data to display</div>
+                </div>
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={loanDistribution} dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={2} startAngle={90} endAngle={-270} >
@@ -122,6 +148,7 @@ const Reports: React.FC = () => {
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
         {/* Transaction Volume */}
@@ -129,6 +156,14 @@ const Reports: React.FC = () => {
           <div className="font-medium mb-2 text-center">Transaction Volume</div>
           <div className="text-[#939393] text-sm mb-2 text-center">Monthly transaction amount</div>
           <div className="w-full h-40">
+            {transactionVolume.length === 0 ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-gray-400 text-sm">No data available</div>
+                  <div className="text-gray-300 text-xs">No transaction data to display</div>
+                </div>
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={transactionVolume} barSize={50}>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} />
@@ -137,6 +172,7 @@ const Reports: React.FC = () => {
                 <Bar dataKey="value" fill="#111827"/>
               </BarChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>

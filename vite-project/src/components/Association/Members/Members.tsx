@@ -44,6 +44,82 @@ type LoanPerformanceRow = {
     status: string;
 };
 
+type ApiLoanRequest = {
+    id: number;
+    applicationId: string;
+    amount: string;
+    purpose: string;
+    status: string;
+    creditScore: number;
+    appliedOn: string;
+    member?: {
+        id: string;
+        fullName: string;
+        dateOfBirth: string;
+        phoneNumber: string;
+        email: string;
+        address: string;
+        membershipStatus: boolean;
+        memberPhoto: string | null;
+        dateJoined: string;
+        updatedAt: string;
+        association: {
+            id: string;
+            name: string;
+            description: string | null;
+            leaderName: string;
+            leaderPhoneNumber: string;
+            category: string;
+            numberOfMembers: number;
+            isActive: boolean;
+            createdAt: string;
+            monthlySavings: string;
+            minimumLoanAmount: string;
+            maximumLoanAmount: string;
+            loanDuration: number;
+            interestRate: string;
+            cooperativeId: string;
+            foundedDate: string;
+            updatedAt: string;
+        };
+    };
+};
+
+type ApiLoanPerformance = {
+    memberName: string;
+    loanId: string | null;
+    amount: string;
+    issueDate: string;
+    term: number;
+    paymentsMade: string;
+    status: string;
+};
+
+type ApiTransaction = {
+    id: string;
+    date: string;
+    type: string;
+    recipient: string;
+    amount: string;
+    status: string;
+    paymentMethod: string;
+    reference: string;
+    paymentCycle: string;
+    recipientAssociationId: string;
+    createdAt: string;
+    updatedAt: string;
+    member?: {
+        id: string;
+        fullName: string;
+    };
+};
+
+type ApiMetrics = {
+    totalMembers: number;
+    activeLoans: number;
+    pendingLoans: number;
+};
+
 type TableRow = AllMembersRow | LoanRequestRow | FinancialActivityRow | LoanPerformanceRow;
 
 const AssMembers: React.FC = () => {
@@ -51,15 +127,20 @@ const AssMembers: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [members, setMembers] = useState<AllMembersRow[]>([]);
-    const [totalMembers, setTotalMembers] = useState<number>(0);
-    const [loading, setLoading] = useState(true);
+    const [loanRequests, setLoanRequests] = useState<LoanRequestRow[]>([]);
+    const [loanRequestsLoading, setLoanRequestsLoading] = useState(false);
+    const [loanPerformance, setLoanPerformance] = useState<LoanPerformanceRow[]>([]);
+    const [loanPerformanceLoading, setLoanPerformanceLoading] = useState(false);
+    const [transactions, setTransactions] = useState<FinancialActivityRow[]>([]);
+    const [transactionsLoading, setTransactionsLoading] = useState(false);
+    const [metrics, setMetrics] = useState<ApiMetrics>({ totalMembers: 0, activeLoans: 0, pendingLoans: 0 });
+    const [metricsLoading, setMetricsLoading] = useState(false);
     const navigate = useNavigate();
 
     const tabs = ['All Members', 'Loan Request', 'Financial Activity', 'Loan Performance'];
 
     const fetchMembers = () => {
         const token = localStorage.getItem('token');
-        setLoading(true);
         fetch('https://ajo.nickyai.online/api/v1/admin/all-member', {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -91,14 +172,164 @@ const AssMembers: React.FC = () => {
                     status: m.status || 'Good',
                 }));
                 setMembers(rows);
-                setTotalMembers(data.data?.totalCount || rows.length);
-                setLoading(false);
             })
-            .catch(() => setLoading(false));
+            .catch(() => {});
+    };
+
+    const fetchLoanRequests = () => {
+        const token = localStorage.getItem('token');
+        setLoanRequestsLoading(true);
+        fetch('https://ajo.nickyai.online/api/v1/admin/get-all-applied-loans', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Loan Requests API Response:', data);
+                if (data.status === 'success' && data.data) {
+                    console.log('Loan Requests Data:', data.data);
+                    const rows = data.data.map((loan: ApiLoanRequest): LoanRequestRow => ({
+                        type: 'loan_request',
+                        member: loan.member?.fullName || 'Unknown Member',
+                        requestDate: new Date(loan.appliedOn).toLocaleDateString(),
+                        amount: `₦${Number(loan.amount).toLocaleString()}`,
+                        purpose: loan.purpose || 'Not specified',
+                        creditScore: loan.creditScore?.toString() || 'N/A',
+                        status: loan.status || 'PENDING',
+                    }));
+                    console.log('Processed Loan Request Rows:', rows);
+                    setLoanRequests(rows);
+                } else {
+                    console.log('No loan requests data found or API error');
+                    setLoanRequests([]);
+                }
+                setLoanRequestsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching loan requests:', error);
+                setLoanRequests([]);
+                setLoanRequestsLoading(false);
+            });
+    };
+
+    const fetchLoanPerformance = () => {
+        const token = localStorage.getItem('token');
+        setLoanPerformanceLoading(true);
+        fetch('https://ajo.nickyai.online/api/v1/admin/loans/performance', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Loan Performance API Response:', data);
+                if (data.status === 'success' && data.data) {
+                    console.log('Loan Performance Data:', data.data);
+                    const rows = data.data.map((loan: ApiLoanPerformance): LoanPerformanceRow => ({
+                        type: 'loan_performance',
+                        member: loan.memberName || 'Unknown Member',
+                        loanId: loan.loanId || 'N/A',
+                        amount: `₦${Number(loan.amount).toLocaleString()}`,
+                        issueDate: loan.issueDate,
+                        term: `${loan.term} months`,
+                        paymentsMade: loan.paymentsMade,
+                        status: loan.status || 'pending',
+                    }));
+                    console.log('Processed Loan Performance Rows:', rows);
+                    setLoanPerformance(rows);
+                } else {
+                    console.log('No loan performance data found or API error');
+                    setLoanPerformance([]);
+                }
+                setLoanPerformanceLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching loan performance:', error);
+                setLoanPerformance([]);
+                setLoanPerformanceLoading(false);
+            });
+    };
+
+    const fetchTransactions = () => {
+        const token = localStorage.getItem('token');
+        setTransactionsLoading(true);
+        fetch('https://ajo.nickyai.online/api/v1/admin/transactions', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Transactions API Response:', data);
+                if (data.status === 'success' && data.data) {
+                    console.log('Transactions Data:', data.data);
+                    const rows = data.data.map((transaction: ApiTransaction): FinancialActivityRow => ({
+                        type: 'financial_activity',
+                        member: transaction.member?.fullName || 'Unknown Member',
+                        transactionId: transaction.id,
+                        date: transaction.date,
+                        transactionType: transaction.type,
+                        amount: `₦${Number(transaction.amount).toLocaleString()}`,
+                        status: transaction.status,
+                    }));
+                    console.log('Processed Transaction Rows:', rows);
+                    setTransactions(rows);
+                } else {
+                    console.log('No transactions data found or API error');
+                    setTransactions([]);
+                }
+                setTransactionsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching transactions:', error);
+                setTransactions([]);
+                setTransactionsLoading(false);
+            });
+    };
+
+    const fetchMetrics = () => {
+        const token = localStorage.getItem('token');
+        const associationId = localStorage.getItem('associationId');
+        setMetricsLoading(true);
+        fetch(`https://ajo.nickyai.online/api/v1/admin/loans/metrics?associationId=${associationId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Metrics API Response:', data);
+                if (data.status === 'success' && data.data) {
+                    console.log('Metrics Data:', data.data);
+                    setMetrics(data.data);
+                } else {
+                    console.log('No metrics data found or API error');
+                    setMetrics({ totalMembers: 0, activeLoans: 0, pendingLoans: 0 });
+                }
+                setMetricsLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching metrics:', error);
+                setMetrics({ totalMembers: 0, activeLoans: 0, pendingLoans: 0 });
+                setMetricsLoading(false);
+            });
     };
 
     useEffect(() => {
         fetchMembers();
+        fetchLoanRequests();
+        fetchLoanPerformance();
+        fetchTransactions();
+        fetchMetrics();
     }, []);
 
     const handleTabChange = (tab: string) => {
@@ -129,36 +360,11 @@ const AssMembers: React.FC = () => {
     const getTableData = (): TableRow[] => {
         switch (activeTab) {
             case 'Financial Activity':
-                return Array(6).fill(null).map(() => ({
-                    type: 'financial_activity',
-                    member: 'Member 1',
-                    transactionId: 'Trx--7683',
-                    date: 'Jan 10,2023',
-                    transactionType: 'Repayment',
-                    amount: 'N500,000',
-                    status: 'Completed'
-                }));
+                return transactions;
             case 'Loan Performance':
-                return Array(6).fill(null).map(() => ({
-                    type: 'loan_performance',
-                    member: 'Member 1',
-                    loanId: 'LN-5673',
-                    amount: 'N500,000',
-                    issueDate: 'Jan 10,2023',
-                    term: '1 year',
-                    paymentsMade: '2/12',
-                    status: 'Current'
-                }));
+                return loanPerformance;
             case 'Loan Request':
-                return Array(6).fill(null).map(() => ({
-                    type: 'loan_request',
-                    member: 'Member 1',
-                    requestDate: 'Jan 10,2023',
-                    amount: 'N1,000,00',
-                    purpose: 'Home repair',
-                    creditScore: '720',
-                    status: 'New'
-                }));
+                return loanRequests;
             default:
                 // Filter by search query
                 if (searchQuery) {
@@ -287,7 +493,7 @@ const AssMembers: React.FC = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-[#373737] text-sm md:text-base">Total Members</h3>
-                            <p className="text-xl md:text-3xl font-semibold">{loading ? '...' : totalMembers}</p>
+                            <p className="text-xl md:text-3xl font-semibold">{metricsLoading ? '...' : metrics.totalMembers}</p>
                         </div>
                         <div className="self-center">
                             <img src="/briefcase.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
@@ -299,7 +505,7 @@ const AssMembers: React.FC = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-[#373737] text-sm md:text-base">Active Loans</h3>
-                            <p className="text-xl md:text-3xl font-semibold">59</p>
+                            <p className="text-xl md:text-3xl font-semibold">{metricsLoading ? '...' : metrics.activeLoans}</p>
                         </div>
                         <div className="self-center">
                             <img src="/people.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
@@ -311,7 +517,7 @@ const AssMembers: React.FC = () => {
                     <div className="flex justify-between items-center">
                         <div>
                             <h3 className="text-[#373737] text-sm md:text-base">Pending Approvals</h3>
-                            <p className="text-xl md:text-3xl font-semibold">12</p>
+                            <p className="text-xl md:text-3xl font-semibold">{metricsLoading ? '...' : metrics.pendingLoans}</p>
                         </div>
                         <div className="self-center">
                             <img src="/loans1.svg" alt="pic" className="w-5 h-5 md:w-auto md:h-auto" />
@@ -373,11 +579,31 @@ const AssMembers: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {getTableData().map((row, index) => (
+                        {activeTab === 'Loan Request' && loanRequestsLoading ? (
+                            <tr>
+                                <td colSpan={7} className="text-center py-8 text-gray-500">Loading loan requests...</td>
+                            </tr>
+                        ) : activeTab === 'Loan Performance' && loanPerformanceLoading ? (
+                            <tr>
+                                <td colSpan={8} className="text-center py-8 text-gray-500">Loading loan performance...</td>
+                            </tr>
+                        ) : activeTab === 'Financial Activity' && transactionsLoading ? (
+                            <tr>
+                                <td colSpan={7} className="text-center py-8 text-gray-500">Loading transactions...</td>
+                            </tr>
+                        ) : getTableData().length === 0 ? (
+                            <tr>
+                                <td colSpan={activeTab === 'Loan Performance' ? 8 : 7} className="text-center py-8 text-gray-500">
+                                    {activeTab === 'Financial Activity' ? 'No transactions found' : 'No data found'}
+                                </td>
+                            </tr>
+                        ) : (
+                            getTableData().map((row, index) => (
                             <tr key={index} className="border-b border-[#D9D9D9]">
                                 {renderTableRow(row)}
                             </tr>
-                        ))}
+                            ))
+                        )}
                     </tbody>
                 </table>
 

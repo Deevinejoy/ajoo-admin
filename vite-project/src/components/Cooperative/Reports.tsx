@@ -43,7 +43,7 @@ const Reports: React.FC = () => {
         );
         // Attendance Trend
         const attendanceTrendData = attendanceDataRaw.data;
-        const attendanceTrend = attendanceTrendData.labels.map((label, idx) => ({
+        const attendanceTrend = attendanceTrendData.labels.map((label: string, idx: number) => ({
           name: label,
           value: attendanceTrendData.values[idx]
         }));
@@ -88,15 +88,21 @@ const Reports: React.FC = () => {
           <div className="font-medium mb-1 md:mb-2 text-base md:text-lg">Loan Distribution</div>
           <div className="text-[#939393] text-xs md:text-sm mb-2">Current period</div>
           <div className="w-full h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={loanDistribution} dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={2} startAngle={90} endAngle={-270} >
-                  {loanDistribution.map((entry, idx) => (
-                    <Cell key={idx} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
+            {loanDistribution.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={loanDistribution} dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={2} startAngle={90} endAngle={-270} >
+                    {loanDistribution.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                No data
+              </div>
+            )}
           </div>
         </div>
         {/* Loan Repayment Trend */}
@@ -104,14 +110,20 @@ const Reports: React.FC = () => {
           <div className="font-medium mb-1 md:mb-2 text-base md:text-lg">Loan Repayment Trend</div>
           <div className="text-[#939393] text-xs md:text-sm mb-2">Last 7 months</div>
           <div className="w-full h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={attendanceTrend} barSize={50}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#111827"  />
-              </BarChart>
-            </ResponsiveContainer>
+            {attendanceTrend.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={attendanceTrend} barSize={50}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#111827"  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                No data
+              </div>
+            )}
           </div>
         </div>
         {/* Member Attendance */}
@@ -119,15 +131,21 @@ const Reports: React.FC = () => {
           <div className="font-medium mb-1 md:mb-2 text-base md:text-lg">Member Attendance</div>
           <div className="text-[#939393] text-xs md:text-sm mb-2">Overall attendance rate</div>
           <div className="w-full h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={loanDistribution} dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={2} startAngle={90} endAngle={-270} >
-                  {loanDistribution.map((entry, idx) => (
-                    <Cell key={idx} fill={entry.color} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
+            {loanDistribution.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={loanDistribution} dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={2} startAngle={90} endAngle={-270} >
+                    {loanDistribution.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                No data
+              </div>
+            )}
           </div>
         </div>
         {/* Transaction Volume */}
@@ -135,16 +153,22 @@ const Reports: React.FC = () => {
           <div className="font-medium mb-1 md:mb-2 text-base md:text-lg">Transaction Volume</div>
           <div className="text-[#939393] text-xs md:text-sm mb-2">Monthly transaction amount</div>
           <div className="w-full h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={transactionVolume} barSize={50}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="Savings" fill="#111827" />
-                <Bar dataKey="Loans" fill="#3161FF" />
-                <Bar dataKey="Other" fill="#B68C2B" />
-              </BarChart>
-            </ResponsiveContainer>
+            {transactionVolume.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={transactionVolume} barSize={50}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="Savings" fill="#111827" />
+                  <Bar dataKey="Loans" fill="#3161FF" />
+                  <Bar dataKey="Other" fill="#B68C2B" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                No data
+              </div>
+            )}
           </div>
         </div>
       </div>

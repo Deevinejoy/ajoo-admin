@@ -1,42 +1,86 @@
 import React, { useEffect, useState } from 'react';
-import Linechart from '../Linechart';
 import Piechart from '../Piechart';
+import MyChart from '../Linechart';
 
-interface LoanMetrics {
-    totalMembers: number;
-    activeLoans: number;
-    pendingLoans: number;
+interface LoanRepaymentStatus {
+  status: string;
+  count: string;
+}
+
+interface DebtSummary {
+  memberName: string;
+  amount: string;
+  daysLeft: number;
+}
+
+interface AttendanceOverview {
+  totalRecords: number;
+  present: number;
+  absent: number;
+  late: number;
+}
+
+interface DashboardData {
+  totalMembers: number;
+  activeLoans: number;
+  pendingLoans: number;
+  loanRepaymentStatus: LoanRepaymentStatus[];
+  debtSummary: DebtSummary[];
+  attendanceOverview: AttendanceOverview;
 }
 
 export default function AssDashboard() {
-    const [metrics, setMetrics] = useState<LoanMetrics | null>(null);
+    const [dashboard, setDashboard] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // TODO: Replace with actual logic to get the ID from auth
-        const associationId = 'f32b9e81-e353-4a2f-a23a-f7d5d7642f46';
+        const associationId = localStorage.getItem('associationId');
         const token = localStorage.getItem('token');
-        fetch(`https://ajo.nickyai.online/api/v1/admin/loans/metrics?associationId=${associationId}`, {
+        if (!associationId || !token) {
+            setLoading(false);
+            return;
+        }
+        fetch(`https://ajo.nickyai.online/api/v1/admin/dashboard/${associationId}/overview`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
             },
         })
-            .then(res => res.json())
+            .then(res => {
+                console.log('Response status:', res.status);
+                return res.json();
+            })
             .then(data => {
-                setMetrics(data.data);
+                console.log('Dashboard API Response:', data);
+                if (data && typeof data === 'object') {
+                    setDashboard(data);
+                } else {
+                    console.error('API returned error or no data:', data);
+                    setDashboard(null);
+                }
                 setLoading(false);
             })
-            .catch(() => setLoading(false));
+            .catch((error) => {
+                console.error('Fetch error:', error);
+                setLoading(false);
+            });
     }, []);
 
     if (loading) return <div>Loading...</div>;
-    if (!metrics) return <div>No data found.</div>;
+    if (!dashboard) return <div>No data found.</div>;
 
-    const pieChartData = [
-        { name: 'Active Loans', value: metrics.activeLoans },
-        { name: 'Pending Loans', value: metrics.pendingLoans },
+    const pieChartData = (dashboard.loanRepaymentStatus || []).map((item) => ({
+        name: item.status,
+        value: Number(item.count)
+    }));
+
+    // Prepare attendance data for the line chart
+    const attendanceLineData = [
+        { name: 'Total', value: dashboard.attendanceOverview?.totalRecords ?? 0 },
+        { name: 'Present', value: dashboard.attendanceOverview?.present ?? 0 },
+        { name: 'Absent', value: dashboard.attendanceOverview?.absent ?? 0 },
+        { name: 'Late', value: dashboard.attendanceOverview?.late ?? 0 },
     ];
 
     return (
@@ -47,11 +91,7 @@ export default function AssDashboard() {
             <div className="self-center">
               <p className="text-[#373737] text-xs sm:text-sm md:text-base">Total Members</p>
               <div className="flex gap-x-[10px]">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{metrics.totalMembers}</h2>
-                <div className="flex gap-x-1">
-                  <img src="/up.svg" alt="pic" width={14} height={14} />
-                  <p className="text-[#0F8B42] text-[10px] sm:text-[12px] self-center">15%</p>
-                </div>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{dashboard.totalMembers}</h2>
               </div>
             </div>
             <div className="self-center">
@@ -63,11 +103,7 @@ export default function AssDashboard() {
             <div className="self-center">
               <p className="text-[#373737] text-xs sm:text-sm md:text-base">Active Loans</p>
               <div className="flex gap-x-[10px]">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{metrics.activeLoans}</h2>
-                <div className="flex gap-x-1">
-                  <img src="/up.svg" alt="pic" width={14} height={14} />
-                  <p className="text-[#0F8B42] text-[10px] sm:text-[12px] self-center">8%</p>
-                </div>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{dashboard.activeLoans}</h2>
               </div>
             </div>
             <div className="self-center">
@@ -79,11 +115,7 @@ export default function AssDashboard() {
             <div className="self-center">
               <p className="text-[#373737] text-xs sm:text-sm md:text-base">Pending Loans</p>
               <div className="flex gap-x-[10px]">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{metrics.pendingLoans}</h2>
-                <div className="flex gap-x-1">
-                  <img src="/up.svg" alt="pic" width={14} height={14} />
-                  <p className="text-[#0F8B42] text-[10px] sm:text-[12px] self-center">8%</p>
-                </div>
+                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">{dashboard.pendingLoans}</h2>
               </div>
             </div>
             <div className="self-center">
@@ -117,28 +149,21 @@ export default function AssDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td className="border-b border-gray-300 px-2 py-2 text-left text-[#373737] font-semibold text-xs sm:text-sm md:text-base">John Doe</td>
-                    <td className="border-b border-gray-300 px-2 py-2 text-left text-[#373737] font-semibold text-xs sm:text-sm md:text-base">$1,200</td>
-                    <td className="border-b border-gray-300 px-2 py-2 text-red-500 font-semibold text-xs sm:text-sm md:text-base">40</td>
-                    <td className="border-b border-gray-300 px-2 py-2">
-                      <button className='flex gap-x-1 sm:gap-x-2 md:gap-x-3 bg-[#F2F2F2] p-1 sm:p-2 md:p-[10px] rounded-[10px]'>
-                        <img src='/view.svg' alt='view' className="w-3 h-3 sm:w-4 sm:h-4 md:w-auto md:h-auto"/>
-                        <p className='text-xs sm:text-sm md:text-base text-[#373737] font-medium'>View</p>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border-b border-gray-300 px-2 py-2 text-left text-[#373737] font-semibold text-xs sm:text-sm md:text-base">Jane Smith</td>
-                    <td className="border-b border-gray-300 px-2 py-2 text-left text-[#373737] font-semibold text-xs sm:text-sm md:text-base">$800</td>
-                    <td className="border-b border-gray-300 px-2 py-2 text-red-500 font-semibold text-xs sm:text-sm md:text-base">40</td>
-                    <td className="border-b border-gray-300 px-2 py-2">
-                      <button className='flex gap-x-1 sm:gap-x-2 md:gap-x-3 bg-[#F2F2F2] p-1 sm:p-2 md:p-[10px] rounded-[10px]'>
-                        <img src='/view.svg' alt='view' className="w-3 h-3 sm:w-4 sm:h-4 md:w-auto md:h-auto"/>
-                        <p className='text-xs sm:text-sm md:text-base text-[#373737] font-medium'>View</p>
-                      </button>
-                    </td>
-                  </tr>
+                  {dashboard.debtSummary && dashboard.debtSummary.length > 0 ? dashboard.debtSummary.map((item, idx) => (
+                    <tr key={idx}>
+                      <td className="border-b border-gray-300 px-2 py-2 text-left text-[#373737] font-semibold text-xs sm:text-sm md:text-base">{item.memberName}</td>
+                      <td className="border-b border-gray-300 px-2 py-2 text-left text-[#373737] font-semibold text-xs sm:text-sm md:text-base">₦{Number(item.amount).toLocaleString()}</td>
+                      <td className="border-b border-gray-300 px-2 py-2 text-red-500 font-semibold text-xs sm:text-sm md:text-base">{item.daysLeft}</td>
+                      <td className="border-b border-gray-300 px-2 py-2">
+                        <button className='flex gap-x-1 sm:gap-x-2 md:gap-x-3 bg-[#F2F2F2] p-1 sm:p-2 md:p-[10px] rounded-[10px]'>
+                          <img src='/view.svg' alt='view' className="w-3 h-3 sm:w-4 sm:h-4 md:w-auto md:h-auto"/>
+                          <p className='text-xs sm:text-sm md:text-base text-[#373737] font-medium'>View</p>
+                        </button>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={4} className="text-center text-gray-400 py-4">No debt summary data</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -149,8 +174,9 @@ export default function AssDashboard() {
               <h3 className="font-semibold text-base sm:text-lg md:text-xl text-[#373737] mb-2 sm:mb-0">Attendance Overview</h3>
               <button className="bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm md:text-base text-[#373737]">By year</button>
             </div>
-            <Linechart/>
-          </div>
+            {/* Attendance Line Chart */}
+            <MyChart data={attendanceLineData} />
+        </div>
       </div>
     )
 }

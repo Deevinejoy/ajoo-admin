@@ -75,6 +75,12 @@ const App: React.FC = () => {
           <Route path="/loans" element={<Loans />} />
           <Route path="/loans/:loanId" element={<LoanDetails />} />
           <Route path="/attendance/meeting/:id" element={<MeetingDetails />} />
+
+          <Route path="/attendance/monthly-summary/:id" element={<MonthlySummary />} />
+          <Route path="/attendance/member-report/:id" element={<MemberAttendanceReport />} />
+          <Route path="/attendance/trends/:id" element={<AttendanceTrends />} />
+
+
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/attendance/:id" element={<AttendanceDetails />} />
           <Route path="/transactions" element={<Transaction />} />
@@ -98,6 +104,11 @@ const App: React.FC = () => {
           <Route path="/association/members" element={<AssMembers />} />
           <Route path="/association/attendance/meeting/:id" element={<AssMeetingDetails />} />
           <Route path="/association/attendance" element={<AssAttendance />} />
+
+          <Route path="/association/attendance/monthly-summary" element={<AssMonthlySummary />} />
+          <Route path="/association/attendance/member-report" element={<AssMemberAttendanceReport />} />
+          <Route path="/association/attendance/trends" element={<AssAttendanceTrends />} />
+
           <Route path="/association/transactions" element={<AssTransaction />} />
           <Route path="/association/transactions/:id" element={<AssTransactionDetails />} />
           <Route path="/association/loans" element={<AssLoans />} />

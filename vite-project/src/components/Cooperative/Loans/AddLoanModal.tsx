@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 interface AddLoanModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onLoanCreated?: () => void;
 }
 
-const AddLoanModal: React.FC<AddLoanModalProps> = ({ isOpen, onClose }) => {
+const AddLoanModal: React.FC<AddLoanModalProps> = ({ isOpen, onClose, onLoanCreated }) => {
   const [associationId, setAssociationId] = useState('');
   const [memberId, setMemberId] = useState('');
   const [amount, setAmount] = useState('');
@@ -46,6 +47,7 @@ const AddLoanModal: React.FC<AddLoanModalProps> = ({ isOpen, onClose }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to create loan');
       alert('Loan created successfully!');
+      if (onLoanCreated) onLoanCreated();
       onClose();
     } catch (err: unknown) {
       let errorMsg = 'An error occurred';

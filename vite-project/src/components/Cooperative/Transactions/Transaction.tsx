@@ -150,14 +150,38 @@ const Transaction: React.FC = () => {
             <h2 className="text-lg font-semibold mb-4">Add Transaction</h2>
             <form onSubmit={handleAddTransaction} className="space-y-3">
               {addError && <div className="text-red-500 text-sm mb-2">{addError}</div>}
-              <input type="text" className="w-full border p-2 rounded" placeholder="Member ID" required value={addForm.memberId} onChange={e => setAddForm(f => ({ ...f, memberId: e.target.value }))} />
-              <input type="text" className="w-full border p-2 rounded" placeholder="Loan ID" required value={addForm.loanId} onChange={e => setAddForm(f => ({ ...f, loanId: e.target.value }))} />
-              <input type="text" className="w-full border p-2 rounded" placeholder="Transaction Type" required value={addForm.transactionType} onChange={e => setAddForm(f => ({ ...f, transactionType: e.target.value }))} />
-              <input type="number" className="w-full border p-2 rounded" placeholder="Amount" required value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} />
-              <input type="text" className="w-full border p-2 rounded" placeholder="Payment Method" required value={addForm.paymentMethod} onChange={e => setAddForm(f => ({ ...f, paymentMethod: e.target.value }))} />
-              <input type="text" className="w-full border p-2 rounded" placeholder="Reference" required value={addForm.reference} onChange={e => setAddForm(f => ({ ...f, reference: e.target.value }))} />
-              <input type="text" className="w-full border p-2 rounded" placeholder="Payment Cycle" required value={addForm.paymentCycle} onChange={e => setAddForm(f => ({ ...f, paymentCycle: e.target.value }))} />
-              <input type="text" className="w-full border p-2 rounded" placeholder="Recipient Association ID" required value={addForm.recipientAssociationId} onChange={e => setAddForm(f => ({ ...f, recipientAssociationId: e.target.value }))} />
+              <div className="flex gap-x-3 items-center mb-4">
+                <label className="w-32 text-sm font-medium">Member ID</label>
+                <input type="text" className="w-full border p-2 rounded" placeholder="Member ID" required value={addForm.memberId} onChange={e => setAddForm(f => ({ ...f, memberId: e.target.value }))} />
+              </div>
+              <div className="flex gap-x-3 items-center mb-4">
+                <label className="w-32 text-sm font-medium">Loan ID</label>
+                <input type="text" className="w-full border p-2 rounded" placeholder="Loan ID" required value={addForm.loanId} onChange={e => setAddForm(f => ({ ...f, loanId: e.target.value }))} />
+              </div>
+              <div className="flex gap-x-3 items-center mb-4">
+                <label className="w-32 text-sm font-medium">Transaction Type</label>
+                <input type="text" className="w-full border p-2 rounded" placeholder="Transaction Type" required value={addForm.transactionType} onChange={e => setAddForm(f => ({ ...f, transactionType: e.target.value }))} />
+              </div>
+              <div className="flex gap-x-3 items-center mb-4">
+                <label className="w-32 text-sm font-medium">Amount</label>
+                <input type="number" className="w-full border p-2 rounded" placeholder="Amount" required value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} />
+              </div>
+              <div className="flex gap-x-3 items-center mb-4">
+                <label className="w-32 text-sm font-medium">Payment Method</label>
+                <input type="text" className="w-full border p-2 rounded" placeholder="Payment Method" required value={addForm.paymentMethod} onChange={e => setAddForm(f => ({ ...f, paymentMethod: e.target.value }))} />
+              </div>
+              <div className="flex gap-x-3 items-center mb-4">
+                <label className="w-32 text-sm font-medium">Reference</label>
+                <input type="text" className="w-full border p-2 rounded" placeholder="Reference" required value={addForm.reference} onChange={e => setAddForm(f => ({ ...f, reference: e.target.value }))} />
+              </div>
+              <div className="flex gap-x-3 items-center mb-4">
+                <label className="w-32 text-sm font-medium">Payment Cycle</label>
+                <input type="text" className="w-full border p-2 rounded" placeholder="Payment Cycle" required value={addForm.paymentCycle} onChange={e => setAddForm(f => ({ ...f, paymentCycle: e.target.value }))} />
+              </div>
+              <div className="flex gap-x-3 items-center mb-4">
+                <label className="w-32 text-sm font-medium">Recipient Assoc. ID</label>
+                <input type="text" className="w-full border p-2 rounded" placeholder="Recipient Association ID" required value={addForm.recipientAssociationId} onChange={e => setAddForm(f => ({ ...f, recipientAssociationId: e.target.value }))} />
+              </div>
               <div className="flex gap-2 mt-2">
                 <button type="button" className="bg-gray-200 px-4 py-2 rounded" onClick={() => setShowAddModal(false)} disabled={adding}>Cancel</button>
                 <button type="submit" className="bg-[#3161FF] text-white px-4 py-2 rounded" disabled={adding}>{adding ? 'Adding...' : 'Add Transaction'}</button>

@@ -6,19 +6,18 @@ interface Meeting {
   id: string | number;
   meetingDate?: string;
   meetingName?: string;
+  name?: string;
   meetingType?: string;
   attendees?: string;
   attendanceRate?: string;
+  percent?: string;
 }
 
-const attendanceData = [
-  { id: 'MM3452', name: 'Member 1', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3453', name: 'Member 2', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3454', name: 'Member 3', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3455', name: 'Member 4', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3456', name: 'Member 5', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-  { id: 'MM3457', name: 'Member 6', attended: '11/12', rate: '92%', last: 'Mar 15,2023' },
-];
+interface MemberReport {
+  memberName: string;
+  meetingsAttended: string;
+  attendanceRate: string;
+}
 
 const AttendanceDetails: React.FC = () => {
   const [tab, setTab] = useState<'Meeting Tracker' | 'Attendance Reports'>('Meeting Tracker');
@@ -39,6 +38,11 @@ const AttendanceDetails: React.FC = () => {
   const [recentMeetings, setRecentMeetings] = useState<Meeting[]>([]);
   const [recentMeetingsLoading, setRecentMeetingsLoading] = useState(true);
   const [recentMeetingsError, setRecentMeetingsError] = useState<string | null>(null);
+  
+  // Add state for member reports
+  const [memberReports, setMemberReports] = useState<MemberReport[]>([]);
+  const [memberReportsLoading, setMemberReportsLoading] = useState(false);
+  const [memberReportsError, setMemberReportsError] = useState<string | null>(null);
   
   useEffect(() => {
     if (id) {
@@ -103,6 +107,39 @@ const AttendanceDetails: React.FC = () => {
         });
     }
   }, [id]);
+
+  // Add useEffect to fetch member reports when tab changes to Attendance Reports
+  useEffect(() => {
+    if (tab === 'Attendance Reports' && id) {
+      setMemberReportsLoading(true);
+      setMemberReportsError(null);
+      const token = localStorage.getItem('token');
+      
+      fetch(`https://ajo.nickyai.online/api/v1/cooperative/association/${id}/member-reports`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then(data => {
+          console.log('Member reports API Response:', data);
+          setMemberReports(data || []);
+          setMemberReportsLoading(false);
+        })
+        .catch(error => {
+          console.error('Error fetching member reports:', error);
+          setMemberReportsError(error.message);
+          setMemberReportsLoading(false);
+        });
+    }
+  }, [tab, id]);
 
   // Show loading state
   if (loading) {
@@ -317,28 +354,29 @@ const AttendanceDetails: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-4 md:p-6">
           <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Members Attendance</h2>
           <div className="overflow-x-auto">
+            {memberReportsLoading ? (
+              <div className="p-4 text-center text-gray-500">Loading member reports...</div>
+            ) : memberReportsError ? (
+              <div className="p-4 text-center text-red-500">{memberReportsError}</div>
+            ) : (
             <table className="w-full min-w-[700px]">
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Member Name</th>
-                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Member ID</th>
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Meetings attended</th>
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Attendance Rate</th>
-                  <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Last Attended</th>
                   <th className="text-left py-3 md:py-4 px-2 md:px-6 text-[#939393] font-medium text-xs md:text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {attendanceData.map((m, i) => (
+                {memberReports.map((m, i) => (
                   <tr key={i} className="border-b border-gray-200">
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.name}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.id}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attended}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.rate}</td>
-                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.last}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.memberName}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.meetingsAttended}</td>
+                    <td className="py-3 md:py-4 px-2 md:px-6 text-[#373737] text-xs md:text-sm">{m.attendanceRate}%</td>
                     <td className="py-3 md:py-4 px-2 md:px-6">
                     <button
-                    onClick={() => navigate(`/attendance/member/${m.id}`)}
+                    onClick={() => navigate(`/attendance/member/${i}`)}
                     className="flex items-center gap-1 md:gap-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
                     >
                         <img src="/view.svg" alt="pic" width={16} height={16} className="md:w-[18px] md:h-[18px]"/> 
@@ -349,6 +387,7 @@ const AttendanceDetails: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
           {/* Footer Buttons */}
           <div className="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-6">

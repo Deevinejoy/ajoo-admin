@@ -113,7 +113,7 @@ export default function Attendance() {
   return (
     <div className="p-4 md:p-8 bg-[#F5F7FA] min-h-screen">
       <div className="mb-4 md:mb-6">
-        <h1 className="text-xl md:text-2xl font-medium">Associations</h1>
+        <h1 className="text-xl md:text-2xl font-medium">Attendance</h1>
         <p className="text-[#666666] text-sm md:text-base">Manage all associations attendance</p>
       </div>
       

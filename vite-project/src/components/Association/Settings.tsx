@@ -1,4 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+interface Association {
+  id: string;
+  name: string;
+  associationId: string;
+  registrationNumber: string;
+  foundedDate: string;
+  address: string;
+  email: string;
+  phone: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const TABS = [
   { label: 'Cooperative', icon: <img src="/building.svg" alt="cooperative" className="w-5 h-5" /> },
@@ -19,6 +32,97 @@ const loanSettings = [
 const Settings: React.FC = () => {
   const [tab, setTab] = useState('Cooperative');
   const [editingLoanIdx, setEditingLoanIdx] = useState<number | null>(null);
+
+  // Association state
+  const [association, setAssociation] = useState<Association | null>(null);
+  const [assocLoading, setAssocLoading] = useState(false);
+  const [assocError, setAssocError] = useState('');
+  const [assocSuccess, setAssocSuccess] = useState('');
+  const associationId = localStorage.getItem('associationId');
+
+  useEffect(() => {
+    if (tab === 'Cooperative' && associationId) {
+      setAssocLoading(true);
+      setAssocError('');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setAssocError('No token provided. Please log in again.');
+        setAssocLoading(false);
+        return;
+      }
+      fetch(`https://ajo.nickyai.online/api/v1/admin/association/${associationId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            setAssociation(data.data);
+          } else {
+            setAssocError(data.message || 'Failed to load association details');
+          }
+          setAssocLoading(false);
+        })
+        .catch(() => {
+          setAssocError('Failed to load association details');
+          setAssocLoading(false);
+        });
+    }
+  }, [tab, associationId]);
+
+  const handleAssocChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setAssociation((prev) => prev ? { ...prev, [name]: value } : null);
+  };
+
+  const handleAssocSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!association) {
+      setAssocError('No association data loaded.');
+      return;
+    }
+    setAssocLoading(true);
+    setAssocError('');
+    setAssocSuccess('');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setAssocError('No token provided. Please log in again.');
+      setAssocLoading(false);
+      return;
+    }
+    try {
+      const res = await fetch(`https://ajo.nickyai.online/api/v1/admin/association`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          id: association.id,
+          name: association.name,
+          registrationNumber: association.registrationNumber,
+          foundedDate: association.foundedDate,
+          address: association.address,
+          email: association.email,
+          phone: association.phone,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && (data.status === 'success' || data.status === true)) {
+        setAssocSuccess('Association details updated successfully!');
+      } else {
+        setAssocError(data.message || 'Failed to update association details');
+      }
+    } catch {
+      setAssocError('Failed to update association details');
+    } finally {
+      setAssocLoading(false);
+    }
+  };
 
   return (
     <div className="p-3 md:p-6">
@@ -42,39 +146,43 @@ const Settings: React.FC = () => {
         <div className="bg-white rounded-lg p-4 md:p-8">
           <h2 className="text-lg md:text-xl font-semibold mb-1">Association Details</h2>
           <p className="text-sm md:text-base text-[#939393] mb-4 md:mb-6">Manage your cooperative information</p>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Association Name</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="Association Name" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Cooperative ID</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="CSC-12345" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Registration number</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="REG-9475824" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Founded Date</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="01-Jan-2020" readOnly />
-            </div>
-            <div className="col-span-1 md:col-span-2">
-              <label className="block text-sm md:text-base font-medium mb-1">Address</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="123 Cooperative Street, Financial District" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Email</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="info@communitysavings.coop" readOnly />
-            </div>
-            <div>
-              <label className="block text-sm md:text-base font-medium mb-1">Phone</label>
-              <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" value="+234 904 284 5939" readOnly />
-            </div>
-            <div className="col-span-1 md:col-span-2 mt-4">
-              <button className="bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg w-full md:w-auto">Save Changes</button>
-            </div>
-          </form>
+          {assocLoading ? (
+            <div className="text-gray-500">Loading...</div>
+          ) : assocError ? (
+            <div className="text-red-500">{assocError}</div>
+          ) : association ? (
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6" onSubmit={handleAssocSave}>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Association Name</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" name="name" value={association.name} onChange={handleAssocChange} disabled={!association} />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Registration number</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" name="registrationNumber" value={association.registrationNumber} onChange={handleAssocChange} disabled={!association} />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Founded Date</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" name="foundedDate" type="date" value={association.foundedDate ? association.foundedDate.slice(0,10) : ''} readOnly disabled />
+              </div>
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-sm md:text-base font-medium mb-1">Address</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" name="address" value={association.address} onChange={handleAssocChange} disabled={!association} />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Email</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" name="email" value={association.email} onChange={handleAssocChange} disabled={!association} />
+              </div>
+              <div>
+                <label className="block text-sm md:text-base font-medium mb-1">Phone</label>
+                <input className="w-full p-2 border border-gray-300 rounded-lg bg-[#F5F7FA]" name="phone" value={association.phone} onChange={handleAssocChange} disabled={!association} />
+              </div>
+              <div className="col-span-1 md:col-span-2 mt-4">
+                <button className="bg-[#111827] text-white px-4 md:px-6 py-2 rounded-lg w-full md:w-auto" type="submit" disabled={assocLoading || !association}>Save Changes</button>
+              </div>
+              {assocSuccess && <div className="col-span-2 text-green-600 mt-2">{assocSuccess}</div>}
+              {assocError && <div className="col-span-2 text-red-500 mt-2">{assocError}</div>}
+            </form>
+          ) : null}
         </div>
       )}
       {tab === 'Permission' && (

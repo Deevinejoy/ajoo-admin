@@ -18,7 +18,8 @@ const Loans: React.FC = () => {
   const [loans, setLoans] = useState<Loan[]>([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
+  // Fetch loans logic as a function
+  const fetchLoans = () => {
     const token = localStorage.getItem('token');
     fetch('https://ajo.nickyai.online/api/v1/cooperative/loans/view', {
       headers: {
@@ -53,6 +54,10 @@ const Loans: React.FC = () => {
         }));
         setLoans(mapped);
       });
+  };
+
+  useEffect(() => {
+    fetchLoans();
   }, []);
 
   const filteredLoans = loans.filter(loan =>
@@ -82,7 +87,7 @@ const Loans: React.FC = () => {
   return (
     <div className="p-4 md:p-8">
       {/* Add Loan Modal */}
-      <AddLoanModal isOpen={isAddLoanOpen} onClose={() => setIsAddLoanOpen(false)} />
+      <AddLoanModal isOpen={isAddLoanOpen} onClose={() => setIsAddLoanOpen(false)} onLoanCreated={fetchLoans} />
 
       <div className="mb-1 md:mb-2">
         <h1 className="text-xl md:text-2xl font-medium">Loans</h1>

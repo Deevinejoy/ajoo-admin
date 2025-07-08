@@ -1,5 +1,38 @@
 import React, { useState, useEffect } from 'react';
 
+interface ActivityLog {
+  id: string;
+  associationId: string;
+  action: string;
+  description: string;
+  performedById: string | null;
+  metadata: Record<string, string | number | boolean>;
+  createdAt: string;
+  performedBy: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  association: {
+    id: string;
+    name: string;
+    leaderName: string;
+    leaderPhoneNumber: string;
+    category: string;
+    numberOfMembers: number;
+    isActive: boolean;
+    createdAt: string;
+    monthlySavings: string;
+    minimumLoanAmount: string;
+    maximumLoanAmount: string;
+    loanDuration: number;
+    interestRate: string;
+    cooperativeId: string;
+    foundedDate: string;
+    updatedAt: string;
+  };
+}
+
 function formatTimeAgo(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
@@ -11,6 +44,8 @@ function formatTimeAgo(dateString: string) {
   return date.toLocaleString();
 }
 
+const frequencyOptions = ['Immediately', 'Daily', 'Weekly', 'Monthly'];
+
 const AssNotifications: React.FC = () => {
   const [tab, setTab] = useState<'Notification' | 'Activity Log'>('Notification');
   const [showManage, setShowManage] = useState(false);
@@ -18,8 +53,8 @@ const AssNotifications: React.FC = () => {
   const [pushNotif, setPushNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(true);
   const [frequency, setFrequency] = useState('Immediately');
-  const [notificationLogs, setNotificationLogs] = useState<any[]>([]);
-  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [notificationLogs, setNotificationLogs] = useState<ActivityLog[]>([]);
+  const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifError, setNotifError] = useState('');
   const [activityLoading, setActivityLoading] = useState(false);
@@ -38,7 +73,13 @@ const AssNotifications: React.FC = () => {
         },
       })
         .then(res => res.json())
-        .then(data => setNotificationLogs(data.data?.logs || []))
+        .then(data => {
+          if (data.status === 'success' && data.data && data.data.logs) {
+            setNotificationLogs(data.data.logs);
+          } else {
+            setNotificationLogs([]);
+          }
+        })
         .catch(() => setNotifError('Error fetching notifications'))
         .finally(() => setNotifLoading(false));
     }
@@ -49,7 +90,14 @@ const AssNotifications: React.FC = () => {
     if (tab === 'Activity Log') {
       setActivityLoading(true);
       setActivityError('');
-      fetch('https://ajo.nickyai.online/api/v1/admin/activity-logs', {
+      const associationId = localStorage.getItem('associationId');
+      if (!associationId) {
+        setActivityError('Association ID not found');
+        setActivityLoading(false);
+        return;
+      }
+      
+      fetch(`https://ajo.nickyai.online/api/v1/admin/activity-logs/${associationId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',
@@ -57,7 +105,14 @@ const AssNotifications: React.FC = () => {
         },
       })
         .then(res => res.json())
-        .then(data => setActivityLogs(data.data?.logs || []))
+        .then(data => {
+          if (data.status === 'success' && data.data) {
+            // Handle single activity log response
+            setActivityLogs([data.data]);
+          } else {
+            setActivityLogs([]);
+          }
+        })
         .catch(() => setActivityError('Error fetching activity logs'))
         .finally(() => setActivityLoading(false));
     }
