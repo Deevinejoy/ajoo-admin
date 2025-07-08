@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import LoanApplicationReviews, { LoanApplication } from './LoanApplicationReviews';
+import LoanApplicationReviews from './LoanApplicationReviews';
 import AddLoanModal from './AddLoanModal';
+
+interface Loan {
+    id: string;
+    loanId: string;
+    amount: string;
+    issueDate: string;
+    dueDate: string;
+    repaymentStatus: string;
+    member?: {
+        fullName: string;
+    };
+}
 
 type TabType = 'Members Loan Breakdown' | 'Loan Application Reviews';
 
@@ -10,7 +22,7 @@ const AssLoans: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('Members Loan Breakdown');
     const [searchQuery, setSearchQuery] = useState('');
     const [isAddLoanOpen, setIsAddLoanOpen] = useState(false);
-    const [loans, setLoans] = useState<any[]>([]);
+    const [loans, setLoans] = useState<Loan[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
@@ -33,32 +45,15 @@ const AssLoans: React.FC = () => {
                 if (!response.ok) throw new Error('Failed to fetch loans');
                 const data = await response.json();
                 setLoans(data.data.loans || []);
-            } catch (err: any) {
-                setError(err.message || 'An error occurred');
+            } catch (err: unknown) {
+                const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+                setError(errorMessage);
             } finally {
                 setLoading(false);
             }
         };
         fetchLoans();
     }, []);
-
-    // Mock data for Loan Application Reviews
-    const pendingApplications: LoanApplication[] = [
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', status: 'Pending review' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', status: 'Pending review' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'House', appliedOn: 'Jun 10,2025', status: 'Pending review' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'House', appliedOn: 'Jun 10,2025', status: 'Pending review' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Car', appliedOn: 'Jun 10,2025', status: 'Pending review' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Loan', appliedOn: 'Jun 10,2025', status: 'Pending review' },
-    ];
-    const recentApplications: LoanApplication[] = [
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', reviewedOn: 'jun 10,2025', status: 'Approved' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', reviewedOn: 'jun 10,2025', status: 'Approved' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', reviewedOn: 'jun 10,2025', status: 'Rejected' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', reviewedOn: 'jun 10,2025', status: 'Rejected' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', reviewedOn: 'jun 10,2025', status: 'Rejected' },
-        { member: 'Member 1', applicationId: 'LN-5342', amount: '₦600,000', purpose: 'Education', appliedOn: 'jun 10,2025', reviewedOn: 'jun 10,2025', status: 'Rejected' },
-    ];
 
     const handleViewLoan = (id: string) => {
         navigate(`/association/loans/${id}`);

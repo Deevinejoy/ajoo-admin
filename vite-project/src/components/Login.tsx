@@ -18,9 +18,9 @@ const Login: React.FC = () => {
     const token = localStorage.getItem('token');
     if (token && user) {
       // Redirect to the appropriate dashboard based on role
-      if (user.role === 'admin') {
+      if (user.role === 'MAJORCOOPERATIVE') {
         navigate('/dashboard');
-      } else if (user.role === 'association') {
+      } else if (user.role === 'MAJORASSOCIATE') {
         navigate('/association/dashboard');
       } else {
         navigate('/member/dashboard');
@@ -64,8 +64,8 @@ const Login: React.FC = () => {
       
       // Get the redirect path from location state or default to appropriate dashboard
       const from = location.state?.from?.pathname || 
-        (data.user.role === 'admin' ? '/dashboard' :
-         data.user.role === 'association' ? '/association/dashboard' :
+        (data.user.role === 'MAJORCOOPERATIVE' ? '/dashboard' :
+         data.user.role === 'MAJORASSOCIATE' ? '/association/dashboard' :
          '/member/dashboard');
       
       navigate(from, { replace: true });
