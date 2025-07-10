@@ -14,7 +14,7 @@ type TopbarProps = {
 };
 
 // Declare the components with their props
-const SidebarWithProps = Sidebar as React.ComponentType<SidebarProps>;
+const SidebarWithProps = Sidebar as React.ComponentType<SidebarProps & { toggleSidebar: () => void }>;
 const TopbarWithProps = Topbar as React.ComponentType<TopbarProps>;
 
 export default function Layout() {
@@ -74,7 +74,7 @@ export default function Layout() {
           onClick={toggleSidebar}
         />
       )}
-      <SidebarWithProps visible={sidebarVisible} />
+      <SidebarWithProps visible={sidebarVisible} toggleSidebar={toggleSidebar} />
       <div className={`flex-1 flex flex-col w-full transition-all duration-300 ${sidebarVisible ? 'md:ml-64' : 'md:ml-14'}`}>
         <TopbarWithProps toggleSidebar={toggleSidebar} sidebarVisible={sidebarVisible} />
         <main className="flex flex-col w-full flex-1 overflow-x-hidden bg-[#F5F7FA]"> 

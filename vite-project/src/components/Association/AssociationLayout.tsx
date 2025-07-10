@@ -14,7 +14,7 @@ type TopbarProps = {
 };
 
 // Declare the components with their props
-const SidebarWithProps = AssociationSidebar as React.ComponentType<SidebarProps>;
+const SidebarWithProps = AssociationSidebar as React.ComponentType<SidebarProps & { toggleSidebar: () => void }>;
 const TopbarWithProps = Topbar as React.ComponentType<TopbarProps>;
 
 const AssociationLayout: React.FC = () => {
@@ -70,11 +70,11 @@ const AssociationLayout: React.FC = () => {
       {/* Mobile backdrop overlay */}
       {isMobile && sidebarVisible && (
         <div 
-          className="fixed inset-0 bg-white/70 backdrop-blur-sm z-10"
+          className="fixed inset-0 bg-white/30 backdrop-blur-sm z-10"
           onClick={toggleSidebar}
         />
       )}
-      <SidebarWithProps visible={sidebarVisible} />
+      <SidebarWithProps visible={sidebarVisible} toggleSidebar={toggleSidebar} />
       <div className={`flex-1 flex flex-col w-full transition-all duration-300 ${sidebarVisible ? 'md:ml-64' : 'md:ml-14'}`}>
         <TopbarWithProps toggleSidebar={toggleSidebar} sidebarVisible={sidebarVisible} />
         <main className="flex flex-col w-full flex-1 overflow-x-hidden  bg-[#F5F7FA]">

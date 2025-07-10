@@ -1,16 +1,33 @@
 import { useLocation, Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useUser } from '../../context/UserContext';
 
 type SidebarProps = {
   visible: boolean;
+  toggleSidebar: () => void;
 };
 
-const Sidebar = ({ visible }: SidebarProps) => {
+const Sidebar = ({ visible, toggleSidebar }: SidebarProps) => {
   const location = useLocation();
+  const { user } = useUser();
 
   // Function to check if current path matches or starts with menu item path
   const isActiveRoute = (itemPath: string) => {
     return location.pathname === itemPath || location.pathname.startsWith(`${itemPath}/`);
+  };
+
+  const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+    }
+    return 'JD';
+  };
+
+  const getUserName = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    return 'John Doe';
   };
 
   const menuItems = [
@@ -46,7 +63,7 @@ const Sidebar = ({ visible }: SidebarProps) => {
             
             {/* Toggle button when sidebar is visible */}
             <button 
-              onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar'))}
+              onClick={toggleSidebar}
               className="focus:outline-none flex items-center justify-center rounded-full hover:bg-gray-100 w-6 h-6 sm:w-7 sm:h-7"
             >
               <ChevronLeft size={16} color='#1A202C'/>
@@ -55,7 +72,7 @@ const Sidebar = ({ visible }: SidebarProps) => {
         ) : (
           // Toggle button that replaces the logo when collapsed
           <button 
-            onClick={() => window.dispatchEvent(new CustomEvent('toggle-sidebar'))}
+            onClick={toggleSidebar}
             className="bg-[#1A202C] rounded-[8px] w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center hover:bg-gray-800 transition-colors"
           >
             <ChevronRight size={16} color='white'/>
@@ -98,15 +115,15 @@ const Sidebar = ({ visible }: SidebarProps) => {
       {/* Sidebar Footer */}
       {visible ? (
         <div className="p-2 sm:p-3 border-t border-gray-200 flex gap-x-2">
-          <p className='text-black font-medium text-sm sm:text-base bg-[#F7FAFC] p-2 sm:p-3'>JD</p> 
+          <p className='text-black font-medium text-sm sm:text-base bg-[#F7FAFC] p-2 sm:p-3'>{getUserInitials()}</p> 
           <div>
-            <p className='text-black font-medium text-sm sm:text-base'>John Doe</p>
+            <p className='text-black font-medium text-sm sm:text-base'>{getUserName()}</p>
             <p className='text-black text-xs sm:text-sm'>Admin</p>
           </div>
         </div>
       ) : (
         <div className="p-2 sm:p-3 border-t border-gray-200 flex justify-center">
-          <p className='text-black font-medium text-xs sm:text-sm bg-[#F7FAFC] p-2'>JD</p> 
+          <p className='text-black font-medium text-xs sm:text-sm bg-[#F7FAFC] p-2'>{getUserInitials()}</p> 
         </div>
       )}
     </aside>

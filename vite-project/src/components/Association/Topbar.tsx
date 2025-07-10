@@ -115,7 +115,7 @@ export default function Topbar({ toggleSidebar, sidebarVisible }: TopbarProps) {
       {/* Overlay for mobile when sidebar is open */}
       {sidebarVisible && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" 
+          className="fixed inset-0 bg-white/30 backdrop-blur-sm z-20 md:hidden" 
           onClick={toggleSidebar}
         />
       )}
