@@ -169,7 +169,19 @@ const AddLoanModal: React.FC<AddLoanModalProps> = ({ isOpen, onClose, onLoanCrea
           </div>
           <div className="flex justify-end gap-4 mt-6">
             <button type="button" onClick={onClose} className="px-6 py-1 border border-[#C4C4C4] rounded-lg">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-[#111827] text-white rounded-lg" disabled={loading}>{loading ? 'Submitting...' : 'Register Member'}</button>
+            <button type="submit" className="px-4 py-2 bg-[#111827] text-white rounded-lg flex items-center justify-center" disabled={loading}>
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  Submitting...
+                </>
+              ) : (
+                'Submit loan application'
+              )}
+            </button>
           </div>
         </form>
       </div>

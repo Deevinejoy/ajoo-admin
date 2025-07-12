@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const statusStyle = (status: string) => {
-  switch (status) {
+  switch (status?.toLowerCase()) {
     case 'completed':
-      return 'bg-[#B9FBC0] text-[#0F8B42]';
+      return 'bg-green-100 text-green-700';
     case 'pending':
       return 'bg-[#FFF4CC] text-[#806B00]';
     default:
@@ -231,7 +231,7 @@ const Transaction: React.FC = () => {
                   <td className="py-3 md:py-4 px-2 md:px-6">
                     <span className={`px-2 md:px-3 py-1 rounded-full text-xs md:text-sm ${statusStyle(t.status)}`}>{t.status}</span>
                   </td>
-                  <td className="py-3 md:py-4 px-2 md:px-6">
+                  <td className="py-3 md:py-4 px-2 md:px-6 whitespace-nowrap min-w-[90px]">
                     <button
                       className="flex items-center gap-x-1 md:gap-x-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
                       onClick={() => navigate(`/transactions/${t.id}`)}

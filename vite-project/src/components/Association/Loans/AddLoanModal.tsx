@@ -58,7 +58,7 @@ const AssAddLoanModal: React.FC<AddLoanModalProps> = ({ isOpen, onClose }) => {
           </div>
           <div className="flex flex-col md:flex-row md:justify-end gap-3 md:gap-4 mt-6">
             <button type="button" onClick={onClose} className="px-6 py-2 border border-[#C4C4C4] rounded-lg w-full md:w-auto order-2 md:order-1">Cancel</button>
-            <button type="submit" className="px-6 py-2 bg-[#111827] text-white rounded-lg w-full md:w-auto order-1 md:order-2">Register Member</button>
+            <button type="submit" className="px-6 py-2 bg-[#111827] text-white rounded-lg w-full md:w-auto order-1 md:order-2">Submit loan application</button>
           </div>
         </form>
       </div>

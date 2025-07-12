@@ -272,7 +272,7 @@ export default function Asso() {
                   </span>
                 </td>
                 <td className="px-2 md:px-6 py-2 md:py-4 text-xs md:text-sm">{association.defaultRate}</td>
-                <td className="px-2 md:px-6 py-2 md:py-4">
+                <td className="px-2 md:px-6 py-2 md:py-4 whitespace-nowrap min-w-[90px]">
                   <button 
                     className="flex items-center justify-center gap-1 md:gap-x-4 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200 w-full md:w-auto"
                     onClick={() => handleViewAssociation(association.id)}

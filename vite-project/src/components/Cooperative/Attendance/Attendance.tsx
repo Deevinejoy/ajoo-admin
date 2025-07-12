@@ -164,15 +164,14 @@ export default function Attendance() {
                   </span>
                 </td>
                 <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">{association.avgAttendance}</td>
-                <td className="px-3 md:px-6 py-3 md:py-4">
-                <button
-                  onClick={() => handleViewAssociation(association.id)}
-                  className="flex items-center gap-1 md:gap-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
+                <td className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap min-w-[90px]">
+                  <button
+                    onClick={() => handleViewAssociation(association.id)}
+                    className="flex items-center gap-1 md:gap-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
                   >
-                      <img src="/view.svg" alt="pic" width={16} height={16} className="md:w-[18px] md:h-[18px]"/> 
-                      <span className='font-medium text-xs md:text-sm'>View</span>
+                    <img src="/view.svg" alt="pic" width={16} height={16} className="md:w-[18px] md:h-[18px]"/> 
+                    <span className='font-medium text-xs md:text-sm'>View</span>
                   </button>
-             
                 </td>
               </tr>
             ))}

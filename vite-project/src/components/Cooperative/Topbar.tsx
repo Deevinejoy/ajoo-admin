@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { LogOut, ChevronDown } from "lucide-react";
 import { useUser } from "../../context/UserContext";
 
@@ -21,6 +21,42 @@ function formatTimeAgo(dateString: string) {
   return date.toLocaleString();
 }
 
+// Map to convert URL paths to readable page titles
+const pageTitles: Record<string, { title: string, description: string }> = {
+  '/dashboard': {
+    title: 'Dashboard',
+    description: 'Overview of registered associations and their performance'
+  },
+  '/associations': {
+    title: 'Associations',
+    description: 'Manage all associations and their details'
+  },
+  '/members': {
+    title: 'Members',
+    description: 'Manage all members and their details'
+  },
+  '/loans': {
+    title: 'Loans',
+    description: 'Overview of all active and pending loans'
+  },
+  '/attendance': {
+    title: 'Attendance',
+    description: 'Track attendance for meetings'
+  },
+  '/transactions': {
+    title: 'Transactions',
+    description: 'View all financial transactions'
+  },
+  '/reports': {
+    title: 'Reports',
+    description: 'Generate and view reports'
+  },
+  '/settings': {
+    title: 'Settings',
+    description: 'Configure system settings and preferences'
+  }
+};
+
 export default function Topbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotif, setShowNotif] = useState(false);
@@ -28,10 +64,15 @@ export default function Topbar() {
   const notifRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const [notifLogs, setNotifLogs] = useState<NotificationLog[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifError, setNotifError] = useState("");
   const { user, logout } = useUser();
+
+  // Determine current page title and description
+  const matchedKey = Object.keys(pageTitles).find(key => location.pathname.startsWith(key));
+  const pageInfo = (matchedKey && pageTitles[matchedKey]) || { title: 'Dashboard', description: 'Overview of the system' };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent): void {
@@ -102,8 +143,8 @@ export default function Topbar() {
   return (
     <div className="flex justify-between items-center bg-white p-2 sm:p-3 md:p-4">
       <div className="pl-2 sm:pl-3">
-        <h1 className="text-lg sm:text-xl font-bold">Dashboard</h1>
-        <p className="text-xs sm:text-sm text-black">Overview of registered associations and their performance</p>
+        <h1 className="text-lg sm:text-xl font-bold">{pageInfo.title}</h1>
+        <p className="text-xs sm:text-sm text-black">{pageInfo.description}</p>
       </div>
       <div className="relative w-40 sm:w-48 md:w-56 bg-[#F5F7FA]">
         <img

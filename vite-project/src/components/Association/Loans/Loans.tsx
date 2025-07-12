@@ -178,7 +178,7 @@ const AssLoans: React.FC = () => {
                                         {loan.repaymentStatus ? loan.repaymentStatus.charAt(0).toUpperCase() + loan.repaymentStatus.slice(1) : '-'}
                                     </span>
                                 </td>
-                                <td className="py-3 md:py-4 px-2 md:px-6">
+                                <td className="py-3 md:py-4 px-2 md:px-6 whitespace-nowrap min-w-[90px]">
                                     <button 
                                         onClick={() => handleViewLoan(loan.id)}
                                         className="flex items-center gap-1 md:gap-x-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"

@@ -150,8 +150,7 @@ const Loans: React.FC = () => {
                 <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.date}</td>
                 <td className="px-2 md:px-4 py-3 md:py-4 text-xs md:text-sm">{loan.dueDate}</td>
                 <td className="px-2 md:px-4 py-3 md:py-4">{getStatusBadge(loan.status)}</td>
-                <td className="px-2 md:px-4 py-3 md:py-4">
-              
+                <td className="px-2 md:px-4 py-3 md:py-4 whitespace-nowrap min-w-[90px]">
                   <button
                     onClick={() => handleViewLoan(loan.id)}
                    className="flex items-center gap-1 md:gap-2 bg-gray-100 px-2 md:px-4 py-1 md:py-2 rounded-lg hover:bg-gray-200"
