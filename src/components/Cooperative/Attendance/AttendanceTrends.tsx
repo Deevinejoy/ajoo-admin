@@ -4,46 +4,34 @@ import { ChevronLeft } from "lucide-react";
 import LineChart from "../../Linechart";
 import PieChart from "../../Piechart";
 
+interface ChartDataItem {
+  name: string;
+  value: number;
+}
+
 const AttendanceTrends: React.FC = () => {
   const navigate = useNavigate();
 
-  const lineChartData = {
-    labels: [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ],
-    datasets: [
-      {
-        label: "Attendance Rate",
-        data: [65, 59, 80, 81, 56, 55, 40, 60, 70, 75, 85, 90],
-        borderColor: "#E5B93E",
-        backgroundColor: "rgba(229, 185, 62, 0.1)",
-        fill: true,
-        tension: 0.4,
-      },
-    ],
-  };
+  const lineChartData: ChartDataItem[] = [
+    { name: "Jan", value: 65 },
+    { name: "Feb", value: 59 },
+    { name: "Mar", value: 80 },
+    { name: "Apr", value: 81 },
+    { name: "May", value: 56 },
+    { name: "Jun", value: 55 },
+    { name: "Jul", value: 40 },
+    { name: "Aug", value: 60 },
+    { name: "Sep", value: 70 },
+    { name: "Oct", value: 75 },
+    { name: "Nov", value: 85 },
+    { name: "Dec", value: 90 },
+  ];
 
-  const pieChartData = {
-    labels: ["General", "Board", "Committee"],
-    datasets: [
-      {
-        data: [60, 10, 30],
-        backgroundColor: ["#E5B93E", "#4B5563", "#F9FAFB"],
-        borderColor: ["#E5B93E", "#4B5563", "#F9FAFB"],
-      },
-    ],
-  };
+  const pieChartData: ChartDataItem[] = [
+    { name: "General", value: 60 },
+    { name: "Board", value: 10 },
+    { name: "Committee", value: 30 },
+  ];
 
   return (
     <div className="p-4 md:p-6 text-white min-h-screen">
@@ -84,7 +72,7 @@ const AttendanceTrends: React.FC = () => {
             Attendance by Meeting Type
           </h2>
           <div className="h-80 flex items-center justify-center">
-            <PieChart data={pieChartData} />
+            <PieChart data={pieChartData} title="Attendance by Meeting Type" />
           </div>
         </div>
       </div>

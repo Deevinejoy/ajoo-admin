@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { useUser } from "../../context/UserContext";
+// import { useUser } from "../../context/UserContext";
 
 type SidebarProps = {
   visible: boolean;
@@ -7,7 +7,7 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ visible, toggleSidebar }: SidebarProps) => {
-  const { user } = useUser();
+  // const { user } = useUser();
 
   const navLinkClasses =
     "flex items-center p-3 text-gray-400 hover:text-[#E5B93E] hover:bg-gray-700/50 rounded-lg group transition-colors duration-200";

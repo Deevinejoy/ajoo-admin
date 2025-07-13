@@ -79,10 +79,15 @@ const TABS = [
     label: "Permission",
     icon: <img src="/Group.svg" alt="permission" className="w-5 h-5 invert" />,
   },
-  { label: "Loans", icon: <img src="/loans.svg" alt="loans" className="w-5 h-5 invert" /> },
+  {
+    label: "Loans",
+    icon: <img src="/loans.svg" alt="loans" className="w-5 h-5 invert" />,
+  },
   {
     label: "Notification",
-    icon: <img src="/notif.svg" alt="notification" className="w-5 h-5 invert" />,
+    icon: (
+      <img src="/notif.svg" alt="notification" className="w-5 h-5 invert" />
+    ),
   },
   {
     label: "Security",
@@ -113,7 +118,7 @@ const Settings: React.FC = () => {
   const [roleSaving, setRoleSaving] = useState(false);
   const [roleDeleting, setRoleDeleting] = useState<number | null>(null);
   const [showAddRoleModal, setShowAddRoleModal] = useState(false);
-  const [addingRole, setAddingRole] = useState(false);
+  const [_addingRole, setAddingRole] = useState(false);
   const [newRole, setNewRole] = useState({
     name: "",
     permissions: [] as string[],
@@ -131,7 +136,7 @@ const Settings: React.FC = () => {
   const [availablePermissions, setAvailablePermissions] = useState<
     Permission[]
   >([]);
-  const [permissionsLoading, setPermissionsLoading] = useState(false);
+  const [_permissionsLoading, setPermissionsLoading] = useState(false);
 
   const [loanStatusData, setLoanStatusData] = useState<LoanStatusData | null>(
     null
@@ -144,26 +149,23 @@ const Settings: React.FC = () => {
   const [adminProfileError, setAdminProfileError] = useState<string | null>(
     null
   );
-  const [adminProfileSaving, setAdminProfileSaving] = useState(false);
-  const [adminProfileSaveMsg, setAdminProfileSaveMsg] = useState<string | null>(
-    null
-  );
+  const [_adminProfileSaving, setAdminProfileSaving] = useState(false);
+  const [_adminProfileSaveMsg, setAdminProfileSaveMsg] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     const cooperativeId = user?.cooperativeId;
     if (tab === "Cooperative" && cooperativeId) {
       setCoopLoading(true);
       setCoopError(null);
-      fetch(
-        `https://ajo.nickyai.online/api/v1/cooperative/settings/info`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      )
+      fetch(`https://ajo.nickyai.online/api/v1/cooperative/settings/info`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      })
         .then((res) => res.json())
         .then((data) => {
           if (data.status === "success" && data.data) {
@@ -186,11 +188,14 @@ const Settings: React.FC = () => {
     if (tab === "Permission" && cooperativeId) {
       setRolesLoading(true);
       setRolesError(null);
-      fetch(`https://ajo.nickyai.online/api/v1/cooperative/roles/${cooperativeId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
+      fetch(
+        `https://ajo.nickyai.online/api/v1/cooperative/roles/${cooperativeId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
         .then((res) => res.json())
         .then((data) => {
           if (data.status === "success" && Array.isArray(data.data)) {
@@ -330,7 +335,15 @@ const Settings: React.FC = () => {
       );
       setRoles(
         roles.map((r) =>
-          r.id === roleId ? { ...r, ...editingRole } : r
+          r.id === roleId
+            ? {
+                ...r,
+                name: editingRole.name,
+                permissions: availablePermissions.filter((p) =>
+                  editingRole.permissions.includes(p.name)
+                ),
+              }
+            : r
         )
       );
       cancelEditingRole();
@@ -396,17 +409,20 @@ const Settings: React.FC = () => {
     e.preventDefault();
     setAddingRole(true);
     try {
-      const res = await fetch(`https://ajo.nickyai.online/api/v1/cooperative/roles`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...newRole,
-          cooperativeId: user?.cooperativeId,
-        }),
-      });
+      const res = await fetch(
+        `https://ajo.nickyai.online/api/v1/cooperative/roles`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...newRole,
+            cooperativeId: user?.cooperativeId,
+          }),
+        }
+      );
       const data = await res.json();
       if (data.status === "success" && data.data) {
         setRoles([...roles, data.data]);
@@ -427,41 +443,41 @@ const Settings: React.FC = () => {
     }
   };
 
-  const handleNewRoleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewRole({ ...newRole, [e.target.name]: e.target.value });
-  };
+  // const handleNewRoleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setNewRole({ ...newRole, [e.target.name]: e.target.value });
+  // };
 
-  const handlePermissionChange = (permissionName: string, checked: boolean) => {
-    setNewRole((prev) => ({
-      ...prev,
-      permissions: checked
-        ? [...prev.permissions, permissionName]
-        : prev.permissions.filter((p) => p !== permissionName),
-    }));
-  };
+  // const handlePermissionChange = (permissionName: string, checked: boolean) => {
+  //   setNewRole((prev) => ({
+  //     ...prev,
+  //     permissions: checked
+  //       ? [...prev.permissions, permissionName]
+  //       : prev.permissions.filter((p) => p !== permissionName),
+  //   }));
+  // };
 
-  const roleTemplates = {
-    readonly: ["view_dashboard", "view_reports"],
-    editor: [
-      "view_dashboard",
-      "manage_members",
-      "manage_loans",
-      "view_reports",
-    ],
-    admin: availablePermissions.map((p) => p.name),
-  };
+  // const roleTemplates = {
+  //   readonly: ["view_dashboard", "view_reports"],
+  //   editor: [
+  //     "view_dashboard",
+  //     "manage_members",
+  //     "manage_loans",
+  //     "view_reports",
+  //   ],
+  //   admin: availablePermissions.map((p) => p.name),
+  // };
 
-  const handleTemplateSelect = (templateKey: keyof typeof roleTemplates) => {
-    setNewRole((prev) => ({
-      ...prev,
-      permissions: roleTemplates[templateKey],
-    }));
-  };
+  // const handleTemplateSelect = (templateKey: keyof typeof roleTemplates) => {
+  //   setNewRole((prev) => ({
+  //     ...prev,
+  //     permissions: roleTemplates[templateKey],
+  //   }));
+  // };
 
-  const handleAdminProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!adminProfile) return;
-    setAdminProfile({ ...adminProfile, [e.target.name]: e.target.value });
-  };
+  // const handleAdminProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (!adminProfile) return;
+  //   setAdminProfile({ ...adminProfile, [e.target.name]: e.target.value });
+  // };
 
   const handleAdminProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -496,18 +512,18 @@ const Settings: React.FC = () => {
     }
   };
 
-  const getStatusChipClass = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "paid":
-        return "bg-green-800/50 text-green-300";
-      case "pending":
-        return "bg-yellow-800/50 text-yellow-300";
-      case "defaulted":
-        return "bg-red-800/50 text-red-300";
-      default:
-        return "bg-gray-700 text-gray-400";
-    }
-  };
+  // const getStatusChipClass = (status: string) => {
+  //   switch (status?.toLowerCase()) {
+  //     case "paid":
+  //       return "bg-green-800/50 text-green-300";
+  //     case "pending":
+  //       return "bg-yellow-800/50 text-yellow-300";
+  //     case "defaulted":
+  //       return "bg-red-800/50 text-red-300";
+  //     default:
+  //       return "bg-gray-700 text-gray-400";
+  //   }
+  // };
 
   return (
     <div className="flex flex-col md:flex-row gap-8 p-4 md:p-6 text-white bg-[#0D0D0D] min-h-screen">
@@ -595,9 +611,7 @@ const Settings: React.FC = () => {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h3 className="text-2xl font-bold">Roles & Permissions</h3>
-                <p className="text-gray-400">
-                  Manage who can see and do what.
-                </p>
+                <p className="text-gray-400">Manage who can see and do what.</p>
               </div>
               <button
                 onClick={() => setShowAddRoleModal(true)}
@@ -633,9 +647,14 @@ const Settings: React.FC = () => {
                             >
                               <input
                                 type="checkbox"
-                                checked={editingRole.permissions.includes(p.name)}
+                                checked={editingRole.permissions.includes(
+                                  p.name
+                                )}
                                 onChange={(e) =>
-                                  handleEditPermissionChange(p.name, e.target.checked)
+                                  handleEditPermissionChange(
+                                    p.name,
+                                    e.target.checked
+                                  )
                                 }
                                 className="accent-[#E5B93E]"
                               />
@@ -693,7 +712,9 @@ const Settings: React.FC = () => {
                             disabled={roleDeleting === role.id}
                             className="bg-red-800/80 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
                           >
-                            {roleDeleting === role.id ? "Deleting..." : "Delete"}
+                            {roleDeleting === role.id
+                              ? "Deleting..."
+                              : "Delete"}
                           </button>
                         </div>
                       </div>
@@ -734,7 +755,7 @@ const Settings: React.FC = () => {
             )}
           </div>
         )}
-        
+
         {tab === "Profile" && (
           <div className="bg-[#1C1C1C] border border-gray-700/50 rounded-2xl shadow-lg p-6 md:p-8">
             <h3 className="text-2xl font-bold mb-1">Admin Profile</h3>
@@ -756,7 +777,6 @@ const Settings: React.FC = () => {
         )}
 
         {/* Other tabs like Notification and Security can be added here */}
-
       </div>
 
       {showAddRoleModal && (

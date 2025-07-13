@@ -44,7 +44,7 @@ interface CreateAssociationForm {
 
 export default function Asso() {
   const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
+  const [_currentPage, _setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [associations, setAssociations] = useState<Association[]>([]);

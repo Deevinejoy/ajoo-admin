@@ -100,7 +100,7 @@ const TABS = [
 
 const Settings: React.FC = () => {
   const [tab, setTab] = useState("Association");
-  const [editingLoanIdx, setEditingLoanIdx] = useState<number | null>(null);
+  const [_editingLoanIdx, _setEditingLoanIdx] = useState<number | null>(null);
   const [coopDetails, setCoopDetails] = useState<CooperativeDetails | null>(
     null
   );

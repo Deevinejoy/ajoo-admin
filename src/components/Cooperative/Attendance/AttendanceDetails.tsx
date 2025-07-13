@@ -57,7 +57,7 @@ const AttendanceDetails: React.FC = () => {
       date: string;
     } | null;
   }>({});
-  const [meetingSummaryLoading, setMeetingSummaryLoading] = useState(false);
+  const [_meetingSummaryLoading, setMeetingSummaryLoading] = useState(false);
   // Add state for member reports
   const [memberReports, setMemberReports] = useState<MemberReport[]>([]);
   const [memberReportsLoading, setMemberReportsLoading] = useState(false);
